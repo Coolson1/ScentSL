@@ -171,6 +171,13 @@ export default async function ProductDetailPage({
             </p>
           </Reveal>
 
+          <Reveal delay={0.18}>
+            <div className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-parchment-soft px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-ink/70">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span>Sold by: Verified ScentSL Partner</span>
+            </div>
+          </Reveal>
+
           <Reveal delay={0.22}>
             <ProductActions
               productId={product.id}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
+import Image from "next/image";
+
 const NAV_LINKS = [
   { href: "/products", label: "Collection" },
   { href: "/products?category=oud", label: "Oud" },
@@ -48,22 +50,35 @@ export function NavbarShell({
           ))}
         </nav>
 
-        {/* center wordmark */}
+        {/* center logo & wordmark */}
         <Link
           href="/"
-          aria-label="House of Cohort — home"
-          className="group flex flex-col items-center"
+          aria-label="ScentSL — home"
+          className="group flex items-center gap-2.5 sm:gap-3"
         >
-          <span className="font-display text-[1.35rem] font-light tracking-[0.18em] text-ink transition-colors duration-300 group-hover:text-brand-gold sm:text-[1.6rem]">
-            HOUSE OF COHORT
-          </span>
-          <span
-            className={`mt-0.5 text-[9px] uppercase tracking-[0.45em] text-ink/55 transition-opacity duration-300 ${
-              scrolled ? "opacity-0" : "opacity-100"
-            }`}
-          >
-            est. Freetown · maison de parfum
-          </span>
+          <div className="relative overflow-hidden rounded-full border border-brand-gold/40 shadow-sm transition-transform duration-300 group-hover:scale-105">
+            <Image
+              src="/scentsl.jpeg"
+              alt="ScentSL Logo"
+              width={40}
+              height={40}
+              className={`rounded-full object-cover transition-all duration-300 ${
+                scrolled ? "h-7 w-7 sm:h-8 sm:w-8" : "h-8 w-8 sm:h-10 sm:w-10"
+              }`}
+            />
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-display text-[1.35rem] font-light tracking-[0.18em] text-ink transition-colors duration-300 group-hover:text-brand-gold sm:text-[1.6rem]">
+              SCENTSL
+            </span>
+            <span
+              className={`text-[8px] sm:text-[9px] uppercase tracking-[0.45em] text-ink/55 transition-opacity duration-300 ${
+                scrolled ? "hidden sm:block opacity-0" : "opacity-100"
+              }`}
+            >
+              est. Freetown · maison de parfum
+            </span>
+          </div>
         </Link>
 
         {/* right cluster */}

@@ -15,6 +15,7 @@ export const productInputSchema = z.object({
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Slug may only contain lowercase letters, numbers, and hyphens"),
   categoryId: z.string().min(1, "Category is required"),
+  vendorId: z.string().optional().nullable(),
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),

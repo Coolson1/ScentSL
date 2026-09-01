@@ -3,10 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { ProductForm } from "@/components/admin/ProductForm";
 
 export default async function NewProductPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true },
-  });
+  const [categories, vendors] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.vendor.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { businessName: "asc" },
+      select: { id: true, businessName: true, status: true },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -31,7 +38,7 @@ export default async function NewProductPage() {
           before adding products.
         </div>
       ) : (
-        <ProductForm categories={categories} />
+        <ProductForm categories={categories} vendors={vendors} />
       )}
     </div>
   );

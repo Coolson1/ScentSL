@@ -1,11 +1,16 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
   const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
   return new PrismaClient({ adapter, log: ["query"] });
+}
+
+// In Next.js dev mode, reset cached Prisma instance if new models like vendor were added
+if (globalForPrisma.prisma && !("vendor" in (globalForPrisma.prisma as object))) {
+  globalForPrisma.prisma = undefined;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

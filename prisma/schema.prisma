@@ -29,6 +29,13 @@ enum CouponType {
   FIXED
 }
 
+enum VendorStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
 // ─── Auth (NextAuth v5 Prisma Adapter tables) ─────────────
 
 model User {
@@ -94,17 +101,37 @@ model Category {
   products Product[]
 }
 
+model Vendor {
+  id             String       @id @default(cuid())
+  businessName   String
+  ownerName      String?
+  phone          String?
+  whatsapp       String?
+  email          String?
+  address        String?
+  description    String?
+  logo           String?
+  status         VendorStatus @default(ACTIVE)
+  commissionRate Float        @default(2.0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  products       Product[]
+  orderItems     OrderItem[]
+}
+
 model Product {
   id            String           @id @default(cuid())
   name          String
   slug          String           @unique
   description   String
   categoryId    String
+  vendorId      String?
   images        String[]
   isFeatured    Boolean          @default(false)
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
   category      Category         @relation(fields: [categoryId], references: [id])
+  vendor        Vendor?          @relation(fields: [vendorId], references: [id])
   variants      ProductVariant[]
   wishlistItems WishlistItem[]
   reviews       Review[]
@@ -210,15 +237,20 @@ model Order {
 }
 
 model OrderItem {
-  id        String         @id @default(cuid())
-  orderId   String
-  variantId String
-  productId String
-  quantity  Int
-  price     Int
-  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variant   ProductVariant @relation(fields: [variantId], references: [id])
-  product   Product        @relation(fields: [productId], references: [id])
+  id               String         @id @default(cuid())
+  orderId          String
+  variantId        String
+  productId        String
+  vendorId         String?
+  quantity         Int
+  price            Int
+  commissionRate   Float          @default(2.0)
+  commissionAmount Int            @default(0)
+  vendorAmount     Int            @default(0)
+  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant          ProductVariant @relation(fields: [variantId], references: [id])
+  product          Product        @relation(fields: [productId], references: [id])
+  vendor           Vendor?        @relation(fields: [vendorId], references: [id])
 }
 
 // ─── Wishlist & Reviews ───────────────────────────────────

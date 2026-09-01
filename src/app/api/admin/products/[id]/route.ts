@@ -72,6 +72,7 @@ export async function PATCH(
         slug: data.slug,
         description: data.description,
         categoryId: data.categoryId,
+        vendorId: data.vendorId || null,
         images: data.images,
         isFeatured: data.isFeatured,
         isActive: data.isActive,
@@ -110,7 +111,7 @@ export async function PATCH(
 
     return tx.product.findUnique({
       where: { id },
-      include: { variants: true, category: true },
+      include: { variants: true, category: true, vendor: true },
     });
   });
 

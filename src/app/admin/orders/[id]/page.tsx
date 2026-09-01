@@ -27,7 +27,7 @@ export default async function AdminOrderDetailPage({
     where: { id },
     include: {
       user: true,
-      items: { include: { product: true, variant: true } },
+      items: { include: { product: true, variant: true, vendor: true } },
       address: { include: { deliveryZone: true } },
       coupon: true,
       deliveryZone: true,
@@ -66,17 +66,19 @@ export default async function AdminOrderDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="font-serif text-xl">Items</CardTitle>
+            <CardTitle className="font-serif text-xl">Items & Vendor Allocation</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
+                  <TableHead>Vendor / Partner</TableHead>
                   <TableHead>Variant</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
                   <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Line total</TableHead>
+                  <TableHead className="text-right">ScentSL Fee</TableHead>
+                  <TableHead className="text-right">Vendor Net</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -85,13 +87,28 @@ export default async function AdminOrderDetailPage({
                     <TableCell className="font-medium">
                       {item.product.name}
                     </TableCell>
+                    <TableCell>
+                      {item.vendor ? (
+                        <Link
+                          href={`/admin/vendors/${item.vendor.id}`}
+                          className="font-medium text-brand-black hover:text-brand-gold"
+                        >
+                          {item.vendor.businessName}
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                      )}
+                    </TableCell>
                     <TableCell>{item.variant.size}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell className="text-right">
-                      {formatSLE(item.price)}
-                    </TableCell>
-                    <TableCell className="text-right">
                       {formatSLE(item.price * item.quantity)}
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-brand-gold font-semibold">
+                      {formatSLE(item.commissionAmount)} ({item.commissionRate}%)
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-emerald-700">
+                      {formatSLE(item.vendorAmount)}
                     </TableCell>
                   </TableRow>
                 ))}

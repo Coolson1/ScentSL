@@ -1,5 +1,5 @@
 # Product Requirements Document
-# House of Cohort — Luxury Perfume E-Commerce Store
+# ScentSL — Luxury Perfume E-Commerce Store
 
 **Version:** 1.0  
 **Date:** 2026-05-21  
@@ -25,7 +25,7 @@
 
 ## 1. Overview
 
-**House of Cohort** is a luxury perfume e-commerce store targeting the Sierra Leone market. It consists of two surfaces:
+**ScentSL** is a luxury perfume e-commerce store targeting the Sierra Leone market. It consists of two surfaces:
 
 - **Customer Storefront** — a polished, minimal-luxury shopping experience where customers browse, select, and purchase perfumes.
 - **Admin Panel** — an internal tool for store administrators and staff to manage products, inventory, orders, discounts, and delivery logistics.

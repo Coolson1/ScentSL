@@ -679,13 +679,13 @@ const prisma = new PrismaClient();
 
 async function main() {
   // ── Admin user ─────────────────────────────────────────
-  // Change the email and password before deploying to production
-  const adminPassword = await bcrypt.hash("Admin@1234", 12);
+  const adminEmail = process.env.ADMIN_EMAIL!;
+  const adminPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD!, 12);
   await prisma.user.upsert({
-    where:  { email: "admin@houseofcohort.com" },
+    where:  { email: adminEmail },
     update: {},
     create: {
-      email:    "admin@houseofcohort.com",
+      email:    adminEmail,
       name:     "Admin",
       password: adminPassword,
       role:     "ADMIN",
@@ -962,7 +962,7 @@ Build a client component with:
 ### Phase 3 verification
 
 - Sign in with Google → should land on homepage as a CUSTOMER
-- Sign in with admin credentials (`admin@houseofcohort.com` / `Admin@1234`) → should land on homepage
+- Sign in with admin credentials (`ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env.local`) → should land on homepage
 - Navigate to `/admin` → should succeed (role is ADMIN)
 - Sign out, then navigate to `/admin` → should redirect to `/auth/signin`
 - Sign in as a customer, then navigate to `/admin` → should redirect to `/`

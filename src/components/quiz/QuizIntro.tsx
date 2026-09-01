@@ -14,7 +14,7 @@ export function QuizIntro({ onStart }: { onStart: () => void }) {
             transition={{ duration: 0.6 }}
             className="text-[9px] uppercase tracking-[0.45em] text-brand-gold sm:text-[10px] sm:tracking-[0.5em]"
           >
-            House of Cohort
+            ScentSL
           </motion.p>
 
           <motion.h1

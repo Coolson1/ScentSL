@@ -1,4 +1,4 @@
-# House of Cohort — Student Assignment
+# ScentSL — Student Assignment
 
 A full-stack perfume storefront built on **Next.js 16**, Prisma, NextAuth, Neon Postgres, and Cloudinary.
 

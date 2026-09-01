@@ -17,6 +17,7 @@ export async function GET(req: Request) {
       : undefined,
     include: {
       category: true,
+      vendor: { select: { id: true, businessName: true } },
       _count: { select: { variants: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -52,6 +53,7 @@ export async function POST(req: Request) {
       slug: data.slug,
       description: data.description,
       categoryId: data.categoryId,
+      vendorId: data.vendorId || null,
       images: data.images,
       isFeatured: data.isFeatured,
       isActive: data.isActive,
@@ -64,7 +66,7 @@ export async function POST(req: Request) {
         })),
       },
     },
-    include: { variants: true, category: true },
+    include: { variants: true, category: true, vendor: true },
   });
 
   return NextResponse.json({ product }, { status: 201 });

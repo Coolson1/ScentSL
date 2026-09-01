@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { Ornament } from "./Ornament";
 
@@ -16,13 +17,22 @@ export function Footer() {
       />
 
       <div className="relative mx-auto max-w-[1400px] px-5 pb-12 pt-20 sm:px-8 lg:px-12">
-        {/* huge wordmark */}
+        {/* huge wordmark with logo */}
         <div className="flex flex-col items-center gap-3 pb-14 text-center">
+          <div className="relative mb-1 overflow-hidden rounded-full border border-brand-gold/50 shadow-md">
+            <Image
+              src="/scentsl.jpeg"
+              alt="ScentSL Logo"
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-full object-cover"
+            />
+          </div>
           <span className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
             Maison · Est. 2024
           </span>
           <h2 className="font-display text-[clamp(2.75rem,7vw,5.5rem)] font-light leading-none tracking-[0.04em]">
-            House <em className="font-normal italic text-brand-gold">of</em> Cohort
+            Scent<em className="font-normal italic text-brand-gold">SL</em>
           </h2>
           <div className="mt-3 h-px w-24 bg-brand-gold/60" />
         </div>
@@ -34,7 +44,7 @@ export function Footer() {
               those who collect their hours.
             </p>
             <p className="mt-6 text-[11px] uppercase tracking-[0.32em] text-brand-gold/80">
-              hello@houseofcohort.com
+              hello@scentsl.com
             </p>
             <p className="mt-1 text-[11px] uppercase tracking-[0.32em] text-parchment/55">
               Freetown · Sierra Leone
@@ -89,7 +99,7 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-parchment/12 pt-6 text-[10px] uppercase tracking-[0.32em] text-parchment/50 sm:flex-row">
-          <span>© {new Date().getFullYear()} House of Cohort — all rights reserved.</span>
+          <span>© {new Date().getFullYear()} ScentSL — all rights reserved.</span>
           <div className="flex gap-6">
             <Link href="#" className="transition-colors hover:text-brand-gold">
               Instagram

@@ -48,9 +48,9 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </div>
         )}
 
-        {/* corner caption */}
-        <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.32em] text-ink/55">
-          <span className="inline-block h-px w-6 bg-ink/30" />
+        {/* corner caption / note tag */}
+        <div className="pointer-events-none absolute left-6 top-6 z-10 flex items-center gap-2 rounded-full border border-ink/15 bg-parchment/85 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.25em] text-ink/90 shadow-sm backdrop-blur-md">
+          <span className="inline-block size-1.5 rounded-full bg-brand-gold" />
           {product.category?.name ?? "Maison"}
         </div>
 

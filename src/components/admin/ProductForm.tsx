@@ -32,6 +32,7 @@ const formSchema = z.object({
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers, hyphens only"),
   categoryId: z.string().min(1, "Category is required"),
+  vendorId: z.string().optional().nullable(),
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),
@@ -59,6 +60,7 @@ export type ProductDefaults = {
   name: string;
   slug: string;
   categoryId: string;
+  vendorId?: string | null;
   description: string;
   images: string[];
   isFeatured: boolean;
@@ -76,6 +78,7 @@ const EMPTY_DEFAULTS: ProductDefaults = {
   name: "",
   slug: "",
   categoryId: "",
+  vendorId: "",
   description: "",
   images: [],
   isFeatured: false,
@@ -86,9 +89,11 @@ const EMPTY_DEFAULTS: ProductDefaults = {
 export function ProductForm({
   defaults = EMPTY_DEFAULTS,
   categories,
+  vendors = [],
 }: {
   defaults?: ProductDefaults;
   categories: { id: string; name: string }[];
+  vendors?: { id: string; businessName: string; status: string }[];
 }) {
   const router = useRouter();
   const editing = Boolean(defaults.id);
@@ -101,6 +106,7 @@ export function ProductForm({
       name: defaults.name,
       slug: defaults.slug,
       categoryId: defaults.categoryId,
+      vendorId: defaults.vendorId ?? "",
       description: defaults.description,
       images: defaults.images,
       isFeatured: defaults.isFeatured,
@@ -116,12 +122,20 @@ export function ProductForm({
   });
 
   async function onSubmit(values: ProductFormOutput) {
+    if (editing && defaults.vendorId && values.vendorId !== defaults.vendorId) {
+      const confirmChange = window.confirm(
+        "Changing the vendor for an existing product will affect order fulfillment and commission calculation. Do you want to proceed?"
+      );
+      if (!confirmChange) return;
+    }
+
     setSubmitting(true);
 
     const payload = {
       name: values.name,
       slug: values.slug,
       categoryId: values.categoryId,
+      vendorId: values.vendorId || null,
       description: values.description,
       images: values.images,
       isFeatured: values.isFeatured,
@@ -211,31 +225,64 @@ export function ProductForm({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="categoryId">Category</Label>
-            <Controller
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="categoryId">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <Label htmlFor="categoryId">Category</Label>
+              <Controller
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="categoryId">
+                      <SelectValue placeholder="Select a category">
+                        {categories.find((c) => c.id === field.value)?.name}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.categoryId && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.categoryId.message}
+                </p>
               )}
-            />
-            {form.formState.errors.categoryId && (
-              <p className="mt-1 text-xs text-destructive">
-                {form.formState.errors.categoryId.message}
-              </p>
-            )}
+            </div>
+
+            <div>
+              <Label htmlFor="vendorId">Vendor / Supplier</Label>
+              <Controller
+                control={form.control}
+                name="vendorId"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger id="vendorId">
+                      <SelectValue placeholder="Select a vendor (Required)">
+                        {vendors.find((v) => v.id === field.value)?.businessName}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendors.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.businessName} {v.status !== "ACTIVE" ? `(${v.status})` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.vendorId && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.vendorId.message}
+                </p>
+              )}
+            </div>
           </div>
 
           <div>

@@ -76,8 +76,8 @@ export function ImageGallery({
           </motion.div>
         </AnimatePresence>
 
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 text-[10px] uppercase tracking-[0.32em] text-parchment drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)]">
-          <span className="inline-block h-px w-6 bg-parchment/60" />
+        <div className="absolute bottom-6 left-6 z-10 flex items-center gap-2 rounded-full border border-parchment/20 bg-ink/75 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.25em] text-parchment shadow-sm backdrop-blur-md">
+          <span className="inline-block size-1.5 rounded-full bg-brand-gold" />
           Plate · {String(active + 1).padStart(2, "0")} / {String(images.length).padStart(2, "0")}
         </div>
       </div>

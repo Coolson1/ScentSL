@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -77,8 +78,15 @@ function SignInForm() {
 
       {/* Edition meta */}
       <div className="absolute left-0 right-0 top-0 z-10 mx-auto flex max-w-[1400px] items-center justify-between px-5 pt-6 text-[10px] uppercase tracking-[0.4em] text-ink/55 sm:px-8 lg:px-12">
-        <Link href="/" className="hover:text-ink">
-          ← House of Cohort
+        <Link href="/" className="flex items-center gap-2 hover:text-ink">
+          <Image
+            src="/scentsl.jpeg"
+            alt="ScentSL Logo"
+            width={20}
+            height={20}
+            className="h-5 w-5 rounded-full object-cover border border-brand-gold/40"
+          />
+          ← ScentSL
         </Link>
         <span>Vol. I · Maison</span>
       </div>

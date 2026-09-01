@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Store,
   Package,
   Tag,
   ShoppingBag,
@@ -29,43 +31,42 @@ type NavLink = {
 };
 
 const NAV_LINKS: NavLink[] = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Overview", href: "/admin", icon: LayoutDashboard },
+  { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Categories", href: "/admin/categories", icon: Tag },
   { label: "Orders", href: "/admin/orders", icon: ShoppingBag },
   { label: "Inventory", href: "/admin/inventory", icon: Boxes },
-  { label: "Discounts", href: "/admin/discounts", icon: Percent, adminOnly: true },
-  { label: "Delivery Zones", href: "/admin/delivery", icon: Truck },
-  { label: "Staff", href: "/admin/staff", icon: Users, adminOnly: true },
+  { label: "Coupons", href: "/admin/coupons", icon: Percent },
+  { label: "Shipping Rates", href: "/admin/shipping-rates", icon: Truck },
+  { label: "Users", href: "/admin/users", icon: Users, adminOnly: true },
 ];
 
-function isLinkActive(pathname: string, href: string) {
-  if (href === "/admin") return pathname === "/admin";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function NavList({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
+function NavList({ role }: { role: Role }) {
   const pathname = usePathname();
-  const links = NAV_LINKS.filter((l) => !l.adminOnly || role === "ADMIN");
 
   return (
     <nav className="flex-1 space-y-1 px-3 py-4">
-      {links.map(({ label, href, icon: Icon }) => {
-        const active = isLinkActive(pathname, href);
+      {NAV_LINKS.map((link) => {
+        if (link.adminOnly && role !== "ADMIN") return null;
+        const isActive =
+          link.href === "/admin"
+            ? pathname === "/admin"
+            : pathname.startsWith(link.href);
+
         return (
           <Link
-            key={href}
-            href={href}
-            onClick={onNavigate}
+            key={link.href}
+            href={link.href}
             className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2 text-sm tracking-wide transition-colors",
-              active
-                ? "bg-brand-gold/15 text-brand-gold border-l-2 border-brand-gold"
-                : "text-brand-white/70 hover:bg-brand-white/5 hover:text-brand-white",
+              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-brand-gold/15 text-brand-gold font-semibold"
+                : "text-brand-white/70 hover:bg-brand-gold/10 hover:text-brand-white"
             )}
           >
-            <Icon className="size-4 shrink-0" />
-            <span>{label}</span>
+            <link.icon className="size-4 text-brand-gold" />
+            {link.label}
           </Link>
         );
       })}
@@ -75,13 +76,24 @@ function NavList({ role, onNavigate }: { role: Role; onNavigate?: () => void }) 
 
 function SidebarHeader() {
   return (
-    <div className="px-6 py-6 border-b border-brand-gold/20">
-      <Link href="/admin" className="font-serif text-2xl text-brand-gold">
-        House of Cohort
-      </Link>
-      <p className="mt-1 text-xs uppercase tracking-[0.2em] text-brand-white/40">
-        Admin
-      </p>
+    <div className="px-6 py-6 border-b border-brand-gold/20 flex items-center gap-3">
+      <div className="relative overflow-hidden rounded-full border border-brand-gold/40 shadow-sm shrink-0">
+        <Image
+          src="/scentsl.jpeg"
+          alt="ScentSL Logo"
+          width={36}
+          height={36}
+          className="h-9 w-9 rounded-full object-cover"
+        />
+      </div>
+      <div>
+        <Link href="/admin" className="font-serif text-2xl text-brand-gold">
+          ScentSL
+        </Link>
+        <p className="text-[10px] uppercase tracking-[0.2em] text-brand-white/40">
+          Admin Console
+        </p>
+      </div>
     </div>
   );
 }
@@ -124,8 +136,15 @@ export function AdminSidebar({
 
       {/* Mobile trigger */}
       <div className="lg:hidden flex items-center justify-between border-b border-brand-gold/20 bg-brand-black px-4 py-3 text-brand-white">
-        <Link href="/admin" className="font-serif text-lg text-brand-gold">
-          House of Cohort
+        <Link href="/admin" className="flex items-center gap-2 font-serif text-lg text-brand-gold">
+          <Image
+            src="/scentsl.jpeg"
+            alt="ScentSL Logo"
+            width={24}
+            height={24}
+            className="h-6 w-6 rounded-full object-cover border border-brand-gold/40"
+          />
+          ScentSL
         </Link>
         <Sheet>
           <SheetTrigger

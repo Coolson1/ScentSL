@@ -40,7 +40,7 @@ export function Hero() {
             transition={{ duration: 0.7, ease: easeOut }}
             className="text-[10px] uppercase tracking-[0.5em] text-brand-gold"
           >
-            Maison House of Cohort · Édition d&apos;Hiver
+            Maison ScentSL · Édition d&apos;Hiver
           </motion.p>
 
           <h1 className="mt-7 font-display text-[clamp(3.2rem,8.5vw,7.5rem)] font-light leading-[0.92] tracking-[-0.015em] text-ink">
@@ -130,7 +130,7 @@ export function Hero() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={HERO_IMAGE}
-                  alt="A bottle of House of Cohort fragrance against parchment"
+                  alt="A bottle of ScentSL fragrance against parchment"
                   className="size-full object-cover"
                 />
               </ParallaxImage>

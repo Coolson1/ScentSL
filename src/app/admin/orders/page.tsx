@@ -54,6 +54,7 @@ export default async function AdminOrdersPage({
     },
     include: {
       user: { select: { name: true, email: true } },
+      items: { select: { vendor: { select: { id: true, businessName: true } } } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -109,6 +110,7 @@ export default async function AdminOrdersPage({
             <TableRow>
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Vendors</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
@@ -119,49 +121,72 @@ export default async function AdminOrdersPage({
             {orders.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
                   No orders match your filters.
                 </TableCell>
               </TableRow>
             ) : (
-              orders.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">
-                    {o.id.slice(0, 10)}…
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {o.user?.name ?? o.user?.email ?? o.guestEmail ?? "Guest"}
-                    </div>
-                    {o.user?.email && o.user.name && (
-                      <div className="text-xs text-muted-foreground">
-                        {o.user.email}
+              orders.map((o) => {
+                const vendorNames = Array.from(
+                  new Set(
+                    o.items
+                      .map((i) => i.vendor?.businessName)
+                      .filter((name): name is string => Boolean(name))
+                  )
+                );
+
+                return (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-mono text-xs">
+                      {o.id.slice(0, 10)}…
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {o.user?.name ?? o.user?.email ?? o.guestEmail ?? "Guest"}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {o.createdAt.toLocaleDateString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </TableCell>
-                  <TableCell>{formatSLE(o.total)}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={o.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link
-                      href={`/admin/orders/${o.id}`}
-                      className="text-sm text-brand-gold hover:underline"
-                    >
+                      {o.user?.email && o.user.name && (
+                        <div className="text-xs text-muted-foreground">
+                          {o.user.email}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {vendorNames.length === 0 ? (
+                        <span className="text-xs text-muted-foreground italic">Unassigned</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {vendorNames.map((name) => (
+                            <span key={name} className="inline-block rounded-full bg-brand-gold/15 px-2 py-0.5 text-[11px] font-medium text-brand-black">
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {o.createdAt.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell>{formatSLE(o.total)}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={o.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/admin/orders/${o.id}`}
+                        className="text-sm text-brand-gold hover:underline"
+                      >
                       View →
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

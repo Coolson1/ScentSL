@@ -1,4 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
@@ -60,6 +63,84 @@ const categories: { name: string; slug: string; image: string }[] = [
 ];
 
 const products: SeedProduct[] = [
+  // ── Vendor Specific Test Products ─────────────────────
+  {
+    name: "Lattafa Khamrah",
+    slug: "lattafa-khamrah",
+    description: "A luxurious unisex gourmand fragrance featuring cinnamon, nutmeg, praline, dates and vanilla.",
+    categorySlug: "gourmand",
+    images: [IMG.u11, IMG.u6],
+    isFeatured: true,
+    variants: [
+      { size: "100ml", price: 35000, stock: 25, sku: "LAT-KHAM-100" },
+    ],
+  },
+  {
+    name: "Lattafa Yara",
+    slug: "lattafa-yara",
+    description: "A creamy tropical blend of orchid, heliotrope, gourmand notes and soft musk.",
+    categorySlug: "gourmand",
+    images: [IMG.u6, IMG.u17],
+    isFeatured: true,
+    variants: [
+      { size: "100ml", price: 32000, stock: 20, sku: "LAT-YARA-100" },
+    ],
+  },
+  {
+    name: "Afnan 9PM",
+    slug: "afnan-9pm",
+    description: "A captivating evening fragrance with bergamot, lavender, cinnamon, apple and amberwood.",
+    categorySlug: "oriental-amber",
+    images: [IMG.u8, IMG.u15],
+    isFeatured: true,
+    variants: [
+      { size: "100ml", price: 34000, stock: 30, sku: "AFN-9PM-100" },
+    ],
+  },
+  {
+    name: "Armaf Club de Nuit Intense Man",
+    slug: "armaf-club-de-nuit",
+    description: "A bold citrus-woody fragrance with lemon, blackcurrant, apple, birch, rose and musk.",
+    categorySlug: "woody",
+    images: [IMG.u3, IMG.u18],
+    isFeatured: true,
+    variants: [
+      { size: "105ml", price: 38000, stock: 22, sku: "ARM-CDNIM-105" },
+    ],
+  },
+  {
+    name: "Lattafa Asad",
+    slug: "lattafa-asad",
+    description: "A dark spicy fragrance with black pepper, pineapple, tobacco, coffee, patchouli and vanilla.",
+    categorySlug: "oriental-amber",
+    images: [IMG.u15, IMG.u8],
+    isFeatured: true,
+    variants: [
+      { size: "100ml", price: 33000, stock: 18, sku: "LAT-ASAD-100" },
+    ],
+  },
+  {
+    name: "Fakhar Black",
+    slug: "fakhar-black",
+    description: "An oriental aromatic blend of apple, ginger, bergamot, lavender, sage and tonka bean.",
+    categorySlug: "citrus-fresh",
+    images: [IMG.u19, IMG.u11],
+    variants: [
+      { size: "100ml", price: 31000, stock: 15, sku: "LAT-FAKHAR-100" },
+    ],
+  },
+  {
+    name: "Oud for Glory",
+    slug: "oud-for-glory",
+    description: "Lattafa Bade'e Al Oud - an intense woody fragrance with lavender, saffron, nutmeg and natural oud wood.",
+    categorySlug: "oud",
+    images: [IMG.u5, IMG.u14],
+    isFeatured: true,
+    variants: [
+      { size: "100ml", price: 39000, stock: 16, sku: "LAT-OFG-100" },
+    ],
+  },
+
   // ── Oud ──────────────────────────────────────────────
   {
     name: "Tom Ford Oud Wood",
@@ -385,12 +466,37 @@ const products: SeedProduct[] = [
 
 async function main() {
   // ── Admin user ─────────────────────────────────────────
-  const adminPassword = await bcrypt.hash("Coolson1", 12);
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const rawAdminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !rawAdminPassword) {
+    throw new Error(
+      "Missing ADMIN_EMAIL or ADMIN_PASSWORD in environment variables (.env.local)."
+    );
+  }
+
+  const adminPassword = await bcrypt.hash(rawAdminPassword, 12);
+
+  try {
+    await prisma.user.updateMany({
+      where: {
+        email: { in: ["admin@houseofcohort.com", "admin@scentsl.com"] },
+        NOT: { email: adminEmail },
+      },
+      data: {
+        role: "CUSTOMER",
+        password: null,
+      },
+    });
+  } catch {
+    // Ignore if legacy users don't exist
+  }
+
   await prisma.user.upsert({
-    where: { email: "admin@houseofcohort.com" },
-    update: { password: adminPassword },
+    where: { email: adminEmail },
+    update: { password: adminPassword, role: "ADMIN" },
     create: {
-      email: "admin@houseofcohort.com",
+      email: adminEmail,
       name: "Admin",
       password: adminPassword,
       role: "ADMIN",
@@ -408,16 +514,112 @@ async function main() {
     categoryBySlug.set(c.slug, row);
   }
 
+  // ── Vendors ─────────────────────────────────────────────
+  const vendorA = await prisma.vendor.upsert({
+    where: { id: "vendor-a-lattafa" },
+    update: {
+      businessName: "Vendor A",
+      ownerName: "Ahmad Al-Mansoor",
+      phone: "+232 76 111 222",
+      whatsapp: "+232 76 111 222",
+      email: "vendora@scentsl.com",
+      address: "12 Regent Road, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+    create: {
+      id: "vendor-a-lattafa",
+      businessName: "Vendor A",
+      ownerName: "Ahmad Al-Mansoor",
+      phone: "+232 76 111 222",
+      whatsapp: "+232 76 111 222",
+      email: "vendora@scentsl.com",
+      address: "12 Regent Road, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+  });
+
+  const vendorB = await prisma.vendor.upsert({
+    where: { id: "vendor-b-armaf" },
+    update: {
+      businessName: "Vendor B",
+      ownerName: "Fatmata Kamara",
+      phone: "+232 78 333 444",
+      whatsapp: "+232 78 333 444",
+      email: "vendorb@scentsl.com",
+      address: "45 Siaka Stevens Street, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+    create: {
+      id: "vendor-b-armaf",
+      businessName: "Vendor B",
+      ownerName: "Fatmata Kamara",
+      phone: "+232 78 333 444",
+      whatsapp: "+232 78 333 444",
+      email: "vendorb@scentsl.com",
+      address: "45 Siaka Stevens Street, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+  });
+
+  const vendorC = await prisma.vendor.upsert({
+    where: { id: "vendor-c-oud" },
+    update: {
+      businessName: "Vendor C",
+      ownerName: "Tariq Jalloh",
+      phone: "+232 77 555 666",
+      whatsapp: "+232 77 555 666",
+      email: "vendorc@scentsl.com",
+      address: "88 Wilberforce Street, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+    create: {
+      id: "vendor-c-oud",
+      businessName: "Vendor C",
+      ownerName: "Tariq Jalloh",
+      phone: "+232 77 555 666",
+      whatsapp: "+232 77 555 666",
+      email: "vendorc@scentsl.com",
+      address: "88 Wilberforce Street, Freetown",
+      status: "ACTIVE",
+      commissionRate: 2.0,
+    },
+  });
+
+  // Helper function to assign vendors based on requirements
+  function getVendorForSlug(slug: string): string {
+    // Vendor A: Lattafa Khamrah, Lattafa Yara, Afnan 9PM
+    if (["lattafa-khamrah", "lattafa-yara", "afnan-9pm"].includes(slug)) {
+      return vendorA.id;
+    }
+    // Vendor B: Armaf Club de Nuit, Lattafa Asad, Fakhar Black
+    if (["armaf-club-de-nuit", "lattafa-asad", "fakhar-black"].includes(slug)) {
+      return vendorB.id;
+    }
+    // Vendor C: Oud for Glory, Golden Oud, etc.
+    if (["oud-for-glory", "golden-oud"].includes(slug)) {
+      return vendorC.id;
+    }
+    // Distribute remaining products across A, B, C deterministically
+    const code = slug.charCodeAt(0) % 3;
+    return code === 0 ? vendorA.id : code === 1 ? vendorB.id : vendorC.id;
+  }
+
   // ── Sample product (original) ──────────────────────────
   const oudCat = categoryBySlug.get("oud")!;
   await prisma.product.upsert({
     where: { slug: "golden-oud" },
-    update: {},
+    update: { vendorId: vendorC.id },
     create: {
       name: "Golden Oud",
       slug: "golden-oud",
       description: "A rich, woody fragrance with notes of oud and amber.",
       categoryId: oudCat.id,
+      vendorId: vendorC.id,
       images: [],
       isFeatured: true,
       isActive: true,
@@ -437,12 +639,15 @@ async function main() {
     if (!category) {
       throw new Error(`Unknown category slug "${p.categorySlug}" for product "${p.name}"`);
     }
+    const targetVendorId = getVendorForSlug(p.slug);
+
     await prisma.product.upsert({
       where: { slug: p.slug },
       update: {
         name: p.name,
         description: p.description,
         categoryId: category.id,
+        vendorId: targetVendorId,
         images: p.images,
         isFeatured: p.isFeatured ?? false,
         isActive: true,
@@ -452,6 +657,7 @@ async function main() {
         slug: p.slug,
         description: p.description,
         categoryId: category.id,
+        vendorId: targetVendorId,
         images: p.images,
         isFeatured: p.isFeatured ?? false,
         isActive: true,
