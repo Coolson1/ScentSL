@@ -15,11 +15,10 @@ export async function POST(req: Request) {
   // ── 1. Read raw body for signature verification ──────────
   const rawBody = await req.text();
 
-  // Try multiple possible Monime signature headers
+  // Use the official Monime signature header
   const signatureHeader =
     req.headers.get("monime-signature") ||
-    req.headers.get("x-monime-signature") ||
-    req.headers.get("x-hub-signature-256");
+    req.headers.get("Monime-Signature");
 
   // ── 2. Verify signature ───────────────────────────────────
   const isValid = await verifyWebhookSignature(rawBody, signatureHeader);
@@ -39,10 +38,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Parse the event type based on the official Monime webhook event shape (event.name)
+  // Fallbacks for older test shapes
+  const eventPayload = event?.event as Record<string, unknown> | undefined;
   const eventType =
-    (event.type as string) ||
-    (event.event as string) ||
-    (event.eventType as string);
+    (eventPayload?.name as string) ||
+    (event?.type as string) ||
+    (event?.event as string) ||
+    (event?.eventType as string);
   console.log("[Webhook/Monime] Received event:", eventType);
 
   // Extract the checkout session from the event payload
@@ -131,9 +134,12 @@ async function handlePaymentSuccess(
   try {
     const now = new Date();
 
-    // Update payment record
-    await prisma.payment.update({
-      where: { id: payment.id },
+    // Atomic update to prevent race conditions
+    const updateResult = await prisma.payment.updateMany({
+      where: { 
+        id: payment.id,
+        status: { not: "PAID" }
+      },
       data: {
         status: "PAID",
         paidAt: now,
@@ -141,6 +147,14 @@ async function handlePaymentSuccess(
         rawWebhookPayload: rawBody,
       },
     });
+
+    if (updateResult.count === 0) {
+      console.log(
+        "[Webhook/Monime] Payment already processed concurrently for session:",
+        monimeSessionId
+      );
+      return;
+    }
 
     // Update order
     await prisma.order.update({
@@ -195,24 +209,30 @@ async function handlePaymentFailed(
 
   if (!payment || payment.status === "PAID") return;
 
-  await prisma.$transaction([
-    prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        status: newStatus,
-        failedAt: new Date(),
-        webhookProcessedAt: new Date(),
-      },
-    }),
-    prisma.order.update({
-      where: { id: payment.orderId },
-      // Update both paymentStatus and fulfillment status for cancellations/failures
-      data: { 
-        paymentStatus: newStatus,
-        ...(newStatus === "CANCELLED" || newStatus === "EXPIRED" || newStatus === "FAILED" ? { status: "CANCELLED" } : {})
-      },
-    }),
-  ]);
+  // Atomic update to ensure we don't overwrite a PAID status
+  // and handle concurrent webhooks
+  const updateResult = await prisma.payment.updateMany({
+    where: { 
+      id: payment.id,
+      status: { not: "PAID" }
+    },
+    data: {
+      status: newStatus,
+      failedAt: new Date(),
+      webhookProcessedAt: new Date(),
+    },
+  });
+
+  if (updateResult.count === 0) return;
+
+  await prisma.order.update({
+    where: { id: payment.orderId },
+    // Update both paymentStatus and fulfillment status for cancellations/failures
+    data: { 
+      paymentStatus: newStatus,
+      ...(newStatus === "CANCELLED" || newStatus === "EXPIRED" || newStatus === "FAILED" ? { status: "CANCELLED" } : {})
+    },
+  });
 
   console.log(
     `[Webhook/Monime] Order ${payment.orderId} payment marked ${newStatus}`

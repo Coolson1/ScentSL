@@ -153,10 +153,6 @@ export async function getCheckoutSession(
   return data.result as MonimeCheckoutSession;
 }
 
-/**
- * Verifies a Monime webhook signature using HMAC-SHA256.
- * Call this with the raw request body string before parsing JSON.
- */
 export async function verifyWebhookSignature(
   rawBody: string,
   signatureHeader: string | null
@@ -168,14 +164,57 @@ export async function verifyWebhookSignature(
   }
 
   if (!signatureHeader) {
-    console.error("[Monime] No signature header present");
+    console.warn("[Monime] No signature header present");
     return false;
   }
 
   try {
+    // 1. Parse signature header (e.g. t=123,v1=abc,v2=def)
+    const elements = signatureHeader.split(",").map((s) => s.trim());
+    let timestamp = "";
+    const signatures: string[] = [];
+
+    for (const el of elements) {
+      if (el.startsWith("t=")) {
+        timestamp = el.slice(2);
+      } else if (el.startsWith("v1=")) {
+        signatures.push(el.slice(3));
+      }
+    }
+
+    if (!timestamp || signatures.length === 0) {
+      // Fallback for older test webhooks that might send plain hex without t= prefix
+      // Only allowed if the provided string is a 64 char hex string (sha256)
+      if (signatureHeader.length === 64 && /^[0-9a-f]{64}$/i.test(signatureHeader)) {
+        signatures.push(signatureHeader);
+        timestamp = ""; // No timestamp check for fallback
+      } else {
+        console.warn("[Monime] Malformed signature header");
+        return false;
+      }
+    }
+
+    // 2. Validate timestamp for replay attacks (5 minutes tolerance)
+    if (timestamp) {
+      const now = Math.floor(Date.now() / 1000);
+      const ts = parseInt(timestamp, 10);
+      if (isNaN(ts)) return false;
+
+      const tolerance = 5 * 60; // 5 minutes
+      if (Math.abs(now - ts) > tolerance) {
+        console.warn("[Monime] Webhook signature timestamp out of tolerance");
+        return false;
+      }
+    }
+
+    // 3. Compute expected signature
+    // The canonical payload is `${timestamp}.${rawBody}` if a timestamp is present,
+    // otherwise just `rawBody` for the fallback case.
+    const signedPayload = timestamp ? `${timestamp}.${rawBody}` : rawBody;
+
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
-    const messageData = encoder.encode(rawBody);
+    const messageData = encoder.encode(signedPayload);
 
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
@@ -185,26 +224,37 @@ export async function verifyWebhookSignature(
       ["sign"]
     );
 
-    const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
-    const computedHex = Array.from(new Uint8Array(signature))
+    const signatureBytes = await crypto.subtle.sign(
+      "HMAC",
+      cryptoKey,
+      messageData
+    );
+    const computedHex = Array.from(new Uint8Array(signatureBytes))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
-    // Support "sha256=<hex>" format or plain hex
-    const providedHex = signatureHeader.startsWith("sha256=")
-      ? signatureHeader.slice(7)
-      : signatureHeader;
-
-    // Constant-time comparison
-    if (computedHex.length !== providedHex.length) return false;
-
-    let diff = 0;
-    for (let i = 0; i < computedHex.length; i++) {
-      diff |= computedHex.charCodeAt(i) ^ providedHex.charCodeAt(i);
+    // 4. Constant-time comparison
+    let isValid = false;
+    for (const providedHex of signatures) {
+      if (computedHex.length === providedHex.length) {
+        let diff = 0;
+        for (let i = 0; i < computedHex.length; i++) {
+          diff |= computedHex.charCodeAt(i) ^ providedHex.charCodeAt(i);
+        }
+        if (diff === 0) {
+          isValid = true;
+          break;
+        }
+      }
     }
-    return diff === 0;
+
+    if (!isValid) {
+      console.warn("[Monime] Signature mismatch");
+    }
+
+    return isValid;
   } catch (err) {
-    console.error("[Monime] Webhook signature verification error:", err);
+    console.error("[Monime] Webhook signature verification error");
     return false;
   }
 }
