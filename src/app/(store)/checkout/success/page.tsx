@@ -1,14 +1,25 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
 
 import { auth } from "@/lib/auth";
+import { CART_SESSION_COOKIE } from "@/lib/cart";
 import { prisma } from "@/lib/prisma";
 import { Ornament } from "@/components/store/Ornament";
 import { Reveal } from "@/components/motion/Reveal";
+import { PaymentStatusPoller } from "@/components/store/PaymentStatusPoller";
 import { formatSLE } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = { orderId?: string; sid?: string };
+
+type PaymentStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "PAID"
+  | "FAILED"
+  | "CANCELLED"
+  | "EXPIRED";
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -17,6 +28,7 @@ export default async function CheckoutSuccessPage({
 }) {
   const { orderId } = await searchParams;
   const session = await auth();
+  await cookies(); // ensure cookie store is initialized
 
   if (!orderId) {
     return (
@@ -29,32 +41,113 @@ export default async function CheckoutSuccessPage({
     );
   }
 
+  // ── Read order from DB — never trust the redirect URL alone ──
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
       items: {
         include: {
-          product: { select: { name: true, slug: true } },
-          variant: { select: { size: true } },
+          product: true,
+          variant: true,
         },
       },
-      address: { include: { deliveryZone: true } },
+      address: {
+        include: { deliveryZone: true },
+      },
     },
   });
 
   if (!order) {
     return (
       <ErrorView
-        title="Payment not yet confirmed"
-        body={`We couldn't find this order. If you were charged, please write to us with the reference ${orderId}.`}
+        title="Order not found"
+        body={`We couldn't locate this order. If you were charged, please write to us with the reference ${orderId}.`}
         ctaHref="/checkout"
         ctaLabel="Try again"
       />
     );
   }
 
+  const paymentStatus = order.paymentStatus as PaymentStatus;
   const isGuest = !session?.user?.id || order.userId !== session.user.id;
+  const orderRef = (order.orderNumber || order.id).slice(-8).toUpperCase();
 
+  // ── Payment FAILED / CANCELLED / EXPIRED ─────────────────
+  if (
+    paymentStatus === "FAILED" ||
+    paymentStatus === "CANCELLED" ||
+    paymentStatus === "EXPIRED"
+  ) {
+    const titles: Record<string, string> = {
+      FAILED: "Payment could not be processed",
+      CANCELLED: "Payment was cancelled",
+      EXPIRED: "Payment session expired",
+    };
+    const bodies: Record<string, string> = {
+      FAILED:
+        "Your payment was not successful. No funds have been taken. You may try again.",
+      CANCELLED:
+        "You cancelled the payment. Your order is still saved — you can try paying again.",
+      EXPIRED:
+        "Your payment session has expired. Please restart the payment to complete your order.",
+    };
+    return (
+      <div className="mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
+        <p className="text-[10px] uppercase tracking-[0.5em] text-brand-rose">
+          — A small note —
+        </p>
+        <h1 className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] text-ink">
+          {titles[paymentStatus]}
+        </h1>
+        <p className="mt-6 font-serif text-base leading-relaxed text-ink/75">
+          {bodies[paymentStatus]}
+        </p>
+        <p className="mt-4 text-[10px] uppercase tracking-[0.4em] text-ink/45">
+          Reference{" "}
+          <span className="font-display text-base normal-case tracking-normal text-ink">
+            {orderRef}
+          </span>
+        </p>
+        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <RetryPaymentButton orderId={order.id} />
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-3 rounded-full border border-ink/25 px-7 py-3 text-[11px] uppercase tracking-[0.32em] text-ink transition-all duration-500 hover:border-brand-gold hover:bg-brand-gold hover:text-ink"
+          >
+            Continue browsing
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Payment PENDING / PROCESSING — show holding state ─────
+  if (paymentStatus === "PENDING" || paymentStatus === "PROCESSING") {
+    return (
+      <div className="mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
+        <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
+          — Almost there —
+        </p>
+        <h1 className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] text-ink">
+          Confirming your payment
+        </h1>
+        <p className="mt-6 font-serif text-base leading-relaxed text-ink/75">
+          We are verifying your payment with Monime. This usually takes just a
+          few seconds.
+        </p>
+        <p className="mt-4 text-[10px] uppercase tracking-[0.4em] text-ink/45">
+          Reference{" "}
+          <span className="font-display text-base normal-case tracking-normal text-ink">
+            {orderRef}
+          </span>
+        </p>
+        {/* Client component polls every 5 seconds */}
+        <PaymentStatusPoller orderId={order.id} initialStatus={paymentStatus} />
+      </div>
+    );
+  }
+
+  // ── Payment PAID — show full success UI ───────────────────
   return (
     <div className="relative isolate overflow-hidden pb-32 pt-16 lg:pt-24">
       <Ornament
@@ -84,10 +177,18 @@ export default async function CheckoutSuccessPage({
             <p className="mt-7 text-[10px] uppercase tracking-[0.4em] text-ink/55">
               Reference{" "}
               <span className="font-display text-base normal-case tracking-normal text-ink">
-                {order.id.slice(-8).toUpperCase()}
+                {orderRef}
               </span>
             </p>
           </div>
+        </Reveal>
+
+        {/* Payment status badge */}
+        <Reveal delay={0.08} className="mt-8 flex justify-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-[10px] uppercase tracking-[0.32em] text-emerald-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Payment confirmed
+          </span>
         </Reveal>
 
         {/* Summary */}
@@ -121,7 +222,10 @@ export default async function CheckoutSuccessPage({
             </ul>
             <dl className="mt-5 space-y-3 text-[11px] uppercase tracking-[0.28em]">
               <Row label="Subtotal" value={formatSLE(order.subtotal)} />
-              <Row label="Delivery" value={formatSLE(order.deliveryFee)} />
+              <Row
+                label="Delivery"
+                value={order.deliveryFee === 0 ? "Free" : formatSLE(order.deliveryFee)}
+              />
               {order.discount > 0 && (
                 <Row
                   label="Carte"
@@ -196,6 +300,8 @@ export default async function CheckoutSuccessPage({
     </div>
   );
 }
+
+// ── Sub-components ────────────────────────────────────────
 
 function Row({
   label,
@@ -295,5 +401,22 @@ function ErrorView({
         </span>
       </Link>
     </div>
+  );
+}
+
+/** Client component — rendered only when paymentStatus is FAILED/CANCELLED/EXPIRED */
+function RetryPaymentButton({ orderId }: { orderId: string }) {
+  // This is a server component file, so we render a plain anchor that hits the retry API.
+  // A full client button with fetch is in a separate component if needed.
+  return (
+    <Link
+      href={`/checkout/retry?orderId=${orderId}`}
+      className="group inline-flex items-center gap-3 rounded-full bg-ink px-7 py-3 text-[11px] uppercase tracking-[0.32em] text-parchment transition-all duration-500 hover:bg-brand-gold hover:text-ink"
+    >
+      Try payment again
+      <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">
+        →
+      </span>
+    </Link>
   );
 }

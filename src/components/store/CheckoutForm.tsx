@@ -286,7 +286,7 @@ export function CheckoutForm({
 
         <dl className="mt-5 space-y-3 text-[11px] uppercase tracking-[0.28em]">
           <Row label="Subtotal" value={formatSLE(subtotal)} />
-          <Row label="Delivery" value={formatSLE(deliveryFee)} />
+          <Row label="Delivery" value={deliveryFee === 0 ? "Free" : formatSLE(deliveryFee)} />
           {discount > 0 && (
             <Row
               label="Carte"
@@ -408,7 +408,7 @@ function ZoneSelect({
         >
           {zones.map((zone) => (
             <option key={zone.id} value={zone.id}>
-              {zone.name} — {formatSLE(zone.fee)}
+              {zone.name} — {zone.fee === 0 ? "Free (SLE 0.00)" : formatSLE(zone.fee)}
             </option>
           ))}
         </select>

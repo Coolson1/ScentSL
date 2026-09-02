@@ -54,7 +54,7 @@ export default async function AdminOrdersPage({
     },
     include: {
       user: { select: { name: true, email: true } },
-      items: { select: { vendor: { select: { id: true, businessName: true } } } },
+      items: { select: { vendor: { select: { id: true, businessName: true } }, product: { select: { name: true } } } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -110,6 +110,7 @@ export default async function AdminOrdersPage({
             <TableRow>
               <TableHead>Order ID</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Products</TableHead>
               <TableHead>Vendors</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Total</TableHead>
@@ -121,7 +122,7 @@ export default async function AdminOrdersPage({
             {orders.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
                   No orders match your filters.
@@ -136,6 +137,9 @@ export default async function AdminOrdersPage({
                       .filter((name): name is string => Boolean(name))
                   )
                 );
+                const productNames = Array.from(
+                  new Set(o.items.map((i) => i.product?.name).filter(Boolean))
+                );
 
                 return (
                   <TableRow key={o.id}>
@@ -149,6 +153,19 @@ export default async function AdminOrdersPage({
                       {o.user?.email && o.user.name && (
                         <div className="text-xs text-muted-foreground">
                           {o.user.email}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {productNames.length === 0 ? (
+                        <span className="text-xs text-muted-foreground italic">-</span>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                          {productNames.map((name) => (
+                            <span key={name} className="text-xs text-brand-black line-clamp-1" title={name}>
+                              {name}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </TableCell>

@@ -8,8 +8,14 @@ function createPrismaClient() {
   return new PrismaClient({ adapter, log: ["query"] });
 }
 
-// In Next.js dev mode, reset cached Prisma instance if new models like vendor were added
-if (globalForPrisma.prisma && !("vendor" in (globalForPrisma.prisma as object))) {
+// Reset cached Prisma instance if new models are missing (e.g. after schema changes)
+if (
+  globalForPrisma.prisma &&
+  (
+    !("vendor" in (globalForPrisma.prisma as object)) ||
+    !("payment" in (globalForPrisma.prisma as object))
+  )
+) {
   globalForPrisma.prisma = undefined;
 }
 

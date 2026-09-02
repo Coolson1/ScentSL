@@ -79,6 +79,28 @@ export default async function OrderDetailPage({
             <div className="mt-8">
               <OrderStatusTimeline status={order.status} />
             </div>
+            {/* Payment status pill */}
+            <div className="mt-6 border-t border-ink/10 pt-5">
+              <p className="mb-3 text-[10px] uppercase tracking-[0.4em] text-ink/45">
+                Payment
+              </p>
+              {order.paymentStatus === "PAID" ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-[10px] uppercase tracking-[0.28em] text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Confirmed
+                </span>
+              ) : order.paymentStatus === "PENDING" || order.paymentStatus === "PROCESSING" ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-1.5 text-[10px] uppercase tracking-[0.28em] text-amber-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  Awaiting payment
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-4 py-1.5 text-[10px] uppercase tracking-[0.28em] text-rose-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  {order.paymentStatus.charAt(0) + order.paymentStatus.slice(1).toLowerCase()}
+                </span>
+              )}
+            </div>
           </section>
         </Reveal>
 

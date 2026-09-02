@@ -670,6 +670,7 @@ async function main() {
   await prisma.deliveryZone.createMany({
     skipDuplicates: true,
     data: [
+      { name: "Pickup", fee: 0 },
       { name: "Freetown Central", fee: 2000 },
       { name: "East Freetown", fee: 3000 },
       { name: "West Freetown", fee: 3000 },

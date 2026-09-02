@@ -20,6 +20,24 @@ async function loadCheckoutData() {
     sessionId: session?.user?.id ? null : sessionId,
   });
 
+  let pickupZone = await prisma.deliveryZone.findFirst({
+    where: { name: { equals: "Pickup", mode: "insensitive" } },
+  });
+  if (!pickupZone) {
+    await prisma.deliveryZone.create({
+      data: {
+        name: "Pickup",
+        fee: 0,
+        isActive: true,
+      },
+    });
+  } else if (!pickupZone.isActive || pickupZone.fee !== 0) {
+    await prisma.deliveryZone.update({
+      where: { id: pickupZone.id },
+      data: { isActive: true, fee: 0 },
+    });
+  }
+
   const zones = await prisma.deliveryZone.findMany({
     where: { isActive: true },
     orderBy: { fee: "asc" },
