@@ -135,7 +135,10 @@ export function AdminSidebar({
       </aside>
 
       {/* Mobile trigger */}
-      <div className="lg:hidden flex items-center justify-between border-b border-brand-gold/20 bg-brand-black px-4 py-3 text-brand-white">
+      <div
+        style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}
+        className="lg:hidden flex items-center justify-between border-b border-brand-gold/20 bg-brand-black px-4 pb-3 text-brand-white"
+      >
         <Link href="/admin" className="flex items-center gap-2 font-serif text-lg text-brand-gold">
           <Image
             src="/scentsl.jpeg"

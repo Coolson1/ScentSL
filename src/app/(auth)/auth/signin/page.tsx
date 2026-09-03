@@ -77,7 +77,10 @@ function SignInForm() {
       />
 
       {/* Edition meta */}
-      <div className="absolute left-0 right-0 top-0 z-10 mx-auto flex max-w-[1400px] items-center justify-between px-5 pt-6 text-[10px] uppercase tracking-[0.4em] text-ink/55 sm:px-8 lg:px-12">
+      <div
+        style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top, 0px))" }}
+        className="absolute left-0 right-0 top-0 z-10 mx-auto flex max-w-[1400px] items-center justify-between px-5 text-[10px] uppercase tracking-[0.4em] text-ink/55 sm:px-8 lg:px-12"
+      >
         <Link href="/" className="flex items-center gap-2 hover:text-ink">
           <Image
             src="/scentsl.jpeg"

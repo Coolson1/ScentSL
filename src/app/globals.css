@@ -70,6 +70,11 @@
 }
 
 :root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
   --font-inter: 'Inter', sans-serif;
   --font-cormorant: 'Cormorant Garamond', serif;
   --font-fraunces: 'Fraunces', serif;

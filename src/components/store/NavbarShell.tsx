@@ -32,6 +32,7 @@ export function NavbarShell({
 
   return (
     <header
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       className={`sticky top-0 z-40 border-b transition-all duration-300 ease-[cubic-bezier(0.65,0,0.35,1)] ${
         scrolled
           ? "border-ink/12 bg-parchment/92 backdrop-blur-md"
