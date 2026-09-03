@@ -134,56 +134,57 @@ async function handlePaymentSuccess(
   try {
     const now = new Date();
 
-    // Atomic update to prevent race conditions
-    const updateResult = await prisma.payment.updateMany({
-      where: { 
-        id: payment.id,
-        status: { not: "PAID" }
-      },
-      data: {
-        status: "PAID",
-        paidAt: now,
-        webhookProcessedAt: now,
-        rawWebhookPayload: rawBody,
-      },
-    });
+    // Wrap all state updates in a single ACID transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Atomic update to prevent race conditions
+      const updateResult = await tx.payment.updateMany({
+        where: { 
+          id: payment.id,
+          status: { not: "PAID" }
+        },
+        data: {
+          status: "PAID",
+          paidAt: now,
+          webhookProcessedAt: now,
+          rawWebhookPayload: rawBody,
+        },
+      });
 
-    if (updateResult.count === 0) {
-      console.log(
-        "[Webhook/Monime] Payment already processed concurrently for session:",
-        monimeSessionId
-      );
-      return;
-    }
+      if (updateResult.count === 0) {
+        console.log(
+          "[Webhook/Monime] Payment already processed concurrently for session:",
+          monimeSessionId
+        );
+        return;
+      }
 
-    // Update order
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        status: "PAID",
-        paymentStatus: "PAID",
-      },
-    });
+      // 2. Update order status
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: "PAID",
+          paymentStatus: "PAID",
+        },
+      });
 
-    // Decrement stock for each order item
-    await Promise.all(
-      order.items.map((item) =>
-        prisma.productVariant.update({
+      // 3. Decrement stock for each order item
+      for (const item of order.items) {
+        await tx.productVariant.update({
           where: { id: item.variantId },
           data: { stock: { decrement: item.quantity } },
-        })
-      )
-    );
-
-    // Clear the customer's bag
-    if (order.userId) {
-      const userCart = await prisma.cart.findUnique({
-        where: { userId: order.userId },
-      });
-      if (userCart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: userCart.id } });
+        });
       }
-    }
+
+      // 4. Clear the customer's bag
+      if (order.userId) {
+        const userCart = await tx.cart.findUnique({
+          where: { userId: order.userId },
+        });
+        if (userCart) {
+          await tx.cartItem.deleteMany({ where: { cartId: userCart.id } });
+        }
+      }
+    });
 
     console.log(
       `[Webhook/Monime] Order ${order.id} (${order.orderNumber}) marked PAID`

@@ -24,9 +24,17 @@ export async function getOrCreateCart(identity: Identity) {
   }
   const existing = await prisma.cart.findUnique({ where });
   if (existing) return existing;
-  return prisma.cart.create({
-    data: identity.userId ? { userId: identity.userId } : { sessionId: identity.sessionId! },
-  });
+
+  try {
+    return await prisma.cart.create({
+      data: identity.userId ? { userId: identity.userId } : { sessionId: identity.sessionId! },
+    });
+  } catch (error) {
+    // Concurrency handling: If another request created the cart simultaneously, fetch it
+    const createdConcurrently = await prisma.cart.findUnique({ where });
+    if (createdConcurrently) return createdConcurrently;
+    throw error;
+  }
 }
 
 export async function getCartWithItems(identity: Identity) {

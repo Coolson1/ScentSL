@@ -64,6 +64,8 @@ model User {
   addresses     Address[]
   accounts      Account[]
   sessions      Session[]
+
+  @@index([role])
 }
 
 model Account {
@@ -82,6 +84,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -90,6 +93,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -109,6 +114,8 @@ model Category {
   image      String?
   isFeatured Boolean   @default(true)
   products   Product[]
+
+  @@index([isFeatured])
 }
 
 model Vendor {
@@ -127,6 +134,8 @@ model Vendor {
   updatedAt      DateTime     @updatedAt
   products       Product[]
   orderItems     OrderItem[]
+
+  @@index([status])
 }
 
 model Product {
@@ -146,6 +155,11 @@ model Product {
   wishlistItems WishlistItem[]
   reviews       Review[]
   orderItems    OrderItem[]
+
+  @@index([categoryId])
+  @@index([vendorId])
+  @@index([isActive, isFeatured])
+  @@index([isActive, createdAt])
 }
 
 model ProductVariant {
@@ -158,6 +172,9 @@ model ProductVariant {
   product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems  CartItem[]
   orderItems OrderItem[]
+
+  @@index([productId])
+  @@index([stock])
 }
 
 // ─── Cart ─────────────────────────────────────────────────
@@ -169,6 +186,9 @@ model Cart {
   updatedAt DateTime   @updatedAt
   user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
+
+  @@index([userId])
+  @@index([sessionId])
 }
 
 model CartItem {
@@ -180,6 +200,7 @@ model CartItem {
   variant   ProductVariant @relation(fields: [variantId], references: [id])
 
   @@unique([cartId, variantId])
+  @@index([variantId])
 }
 
 // ─── Delivery ─────────────────────────────────────────────
@@ -191,6 +212,8 @@ model DeliveryZone {
   isActive  Boolean   @default(true)
   orders    Order[]
   addresses Address[]
+
+  @@index([isActive])
 }
 
 model Address {
@@ -204,6 +227,9 @@ model Address {
   user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   deliveryZone   DeliveryZone @relation(fields: [deliveryZoneId], references: [id], onDelete: Cascade)
   orders         Order[]
+
+  @@index([userId])
+  @@index([deliveryZoneId])
 }
 
 // ─── Coupons ──────────────────────────────────────────────
@@ -219,6 +245,8 @@ model Coupon {
   expiresAt DateTime?
   isActive  Boolean    @default(true)
   orders    Order[]
+
+  @@index([code, isActive])
 }
 
 // ─── Orders ───────────────────────────────────────────────
@@ -247,6 +275,13 @@ model Order {
   coupon          Coupon?       @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items           OrderItem[]
   payments        Payment[]
+
+  @@index([userId])
+  @@index([monimeSessionId])
+  @@index([status, paymentStatus])
+  @@index([createdAt])
+  @@index([deliveryZoneId])
+  @@index([couponId])
 }
 
 model OrderItem {
@@ -264,6 +299,11 @@ model OrderItem {
   variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
   product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
   vendor           Vendor?        @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([variantId])
+  @@index([productId])
+  @@index([vendorId])
 }
 
 // ─── Wishlist & Reviews ───────────────────────────────────
@@ -276,6 +316,8 @@ model WishlistItem {
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
 }
 
 model Review {
@@ -289,6 +331,8 @@ model Review {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@index([productId])
+  @@index([userId])
 }
 
 // ─── Payments ─────────────────────────────────────────────
@@ -309,4 +353,7 @@ model Payment {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
   order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
 }

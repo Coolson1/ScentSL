@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { CART_SESSION_COOKIE, getCartWithItems } from "@/lib/cart";
 import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 
 const checkoutSchema = z.object({
   recipientName: z.string().min(2),
@@ -36,6 +37,15 @@ const APP_URL = getBaseUrl();
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+    const { success } = await rateLimit(`checkout-${ip}`, { limit: 15, intervalMs: 60_000 });
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many checkout requests. Please wait a minute before trying again." },
+        { status: 429 }
+      );
+    }
+
     const session = await auth();
     const cookieStore = await cookies();
     const userId = session?.user?.id ?? null;
@@ -141,74 +151,74 @@ export async function POST(req: Request) {
 
     const total = Math.max(0, subtotal + deliveryFee - discount);
 
-    // ── 7. Create address ─────────────────────────────────
-    const address = await prisma.address.create({
-      data: {
-        userId,
-        recipientName: data.recipientName,
-        phone: data.phone,
-        streetAddress: data.streetAddress,
-        city: data.city,
-        deliveryZoneId: data.deliveryZoneId,
-      },
-    });
-
-    // ── 8. Create order with items ────────────────────────
-    // NOTE: No stock decrement here — happens in webhook after payment confirmation
-    const order = await prisma.order.create({
-      data: {
-        userId,
-        guestEmail: data.guestEmail || null,
-        status: "PENDING",
-        paymentStatus: "PENDING",
-        subtotal,
-        deliveryFee,
-        discount,
-        total,
-        deliveryZoneId: data.deliveryZoneId,
-        addressId: address.id,
-        couponId,
-        items: {
-          create: cart.items.map((cartItem) => {
-            const variant = variants.find((v) => v.id === cartItem.variantId)!;
-            const product = variant.product;
-            const vendor = product.vendor;
-            const itemPrice = variant.price;
-            const itemSubtotal = itemPrice * cartItem.quantity;
-            const commissionRate = vendor?.commissionRate ?? 2.0;
-            const commissionAmount = Math.round(itemSubtotal * (commissionRate / 100));
-            const vendorAmount = itemSubtotal - commissionAmount;
-            return {
-              variantId: cartItem.variantId,
-              productId: product.id,
-              vendorId: product.vendorId || vendor?.id || null,
-              quantity: cartItem.quantity,
-              price: itemPrice,
-              commissionRate,
-              commissionAmount,
-              vendorAmount,
-            };
-          }),
+    // ── 7-10. Transactionally create address, order, payment & update coupon ──
+    const { address, order, payment } = await prisma.$transaction(async (tx) => {
+      const address = await tx.address.create({
+        data: {
+          userId,
+          recipientName: data.recipientName,
+          phone: data.phone,
+          streetAddress: data.streetAddress,
+          city: data.city,
+          deliveryZoneId: data.deliveryZoneId,
         },
-      },
-    });
-
-    // ── 9. Increment coupon usage ──────────────────────────
-    if (couponId) {
-      await prisma.coupon.update({
-        where: { id: couponId },
-        data: { usedCount: { increment: 1 } },
       });
-    }
 
-    // ── 10. Create Payment record ─────────────────────────
-    const payment = await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        amount: total,
-        currency: "SLE",
-        status: "PENDING",
-      },
+      const order = await tx.order.create({
+        data: {
+          userId,
+          guestEmail: data.guestEmail || null,
+          status: "PENDING",
+          paymentStatus: "PENDING",
+          subtotal,
+          deliveryFee,
+          discount,
+          total,
+          deliveryZoneId: data.deliveryZoneId,
+          addressId: address.id,
+          couponId,
+          items: {
+            create: cart.items.map((cartItem) => {
+              const variant = variants.find((v) => v.id === cartItem.variantId)!;
+              const product = variant.product;
+              const vendor = product.vendor;
+              const itemPrice = variant.price;
+              const itemSubtotal = itemPrice * cartItem.quantity;
+              const commissionRate = vendor?.commissionRate ?? 2.0;
+              const commissionAmount = Math.round(itemSubtotal * (commissionRate / 100));
+              const vendorAmount = itemSubtotal - commissionAmount;
+              return {
+                variantId: cartItem.variantId,
+                productId: product.id,
+                vendorId: product.vendorId || vendor?.id || null,
+                quantity: cartItem.quantity,
+                price: itemPrice,
+                commissionRate,
+                commissionAmount,
+                vendorAmount,
+              };
+            }),
+          },
+        },
+      });
+
+      if (couponId) {
+        await tx.coupon.update({
+          where: { id: couponId },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
+      const payment = await tx.payment.create({
+        data: {
+          orderId: order.id,
+          amount: total,
+          currency: "SLE",
+          status: "PENDING",
+        },
+      });
+
+      return { address, order, payment };
     });
 
     // ── 11. Create Monime checkout session ────────────────

@@ -7,8 +7,19 @@ import {
   validateCoupon,
 } from "@/lib/coupon";
 import { applyCouponSchema } from "@/lib/validators/checkout";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // Rate limit coupon application to prevent brute-forcing promo codes (max 10 tries per min)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+  const { success } = await rateLimit(`coupon-${ip}`, { limit: 10, intervalMs: 60_000 });
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many coupon attempts. Please wait a minute before trying again." },
+      { status: 429 }
+    );
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = applyCouponSchema.safeParse(json);
   if (!parsed.success) {

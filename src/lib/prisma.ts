@@ -11,11 +11,11 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-// Re-use a single Prisma instance across hot-reloads in dev to avoid
-// exhausting Neon connection limits and cold-start timeouts.
+// Re-use a single Prisma instance across hot-reloads and lambda re-invocations to avoid
+// exhausting connection limits and cold-start timeouts in serverless environments.
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+globalForPrisma.prisma = prisma;
 
 /**
  * Execute a DB query with retry logic to handle Neon cold-start failures.
@@ -41,6 +41,5 @@ export async function withRetry<T>(
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
-  // TypeScript: unreachable, but satisfies the compiler
   throw new Error("withRetry: exhausted retries");
 }
