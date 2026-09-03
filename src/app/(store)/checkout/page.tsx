@@ -11,39 +11,28 @@ import { Reveal } from "@/components/motion/Reveal";
 export const dynamic = "force-dynamic";
 
 async function loadCheckoutData() {
-  const session = await auth();
-  const cookieStore = await cookies();
-  const sessionId = cookieStore.get(CART_SESSION_COOKIE)?.value ?? null;
+  try {
+    const session = await auth();
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get(CART_SESSION_COOKIE)?.value ?? null;
 
-  const cart = await getCartWithItems({
-    userId: session?.user?.id ?? null,
-    sessionId: session?.user?.id ? null : sessionId,
-  });
+    const cart = await getCartWithItems({
+      userId: session?.user?.id ?? null,
+      sessionId: session?.user?.id ? null : sessionId,
+    });
 
-  let pickupZone = await prisma.deliveryZone.findFirst({
-    where: { name: { equals: "Pickup", mode: "insensitive" } },
-  });
-  if (!pickupZone) {
-    await prisma.deliveryZone.create({
-      data: {
-        name: "Pickup",
-        fee: 0,
-        isActive: true,
-      },
-    });
-  } else if (!pickupZone.isActive || pickupZone.fee !== 0) {
-    await prisma.deliveryZone.update({
-      where: { id: pickupZone.id },
-      data: { isActive: true, fee: 0 },
-    });
+    const zones = await prisma.deliveryZone
+      .findMany({
+        where: { isActive: true },
+        orderBy: { fee: "asc" },
+      })
+      .catch(() => []);
+
+    return { session, cart, zones };
+  } catch (err) {
+    console.error("[Checkout] Error loading checkout data:", err);
+    return { session: null, cart: null, zones: [] };
   }
-
-  const zones = await prisma.deliveryZone.findMany({
-    where: { isActive: true },
-    orderBy: { fee: "asc" },
-  });
-
-  return { session, cart, zones };
 }
 
 export default async function CheckoutPage({
@@ -54,15 +43,15 @@ export default async function CheckoutPage({
   const { cancelled } = await searchParams;
   const { session, cart, zones } = await loadCheckoutData();
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart || !cart.items || cart.items.length === 0) {
     redirect("/cart");
   }
 
   const items = cart.items.map((item) => ({
     variantId: item.variantId,
-    productName: item.variant.product.name,
-    size: item.variant.size,
-    price: item.variant.price,
+    productName: item.variant?.product?.name ?? "Product",
+    size: item.variant?.size ?? "Standard",
+    price: item.variant?.price ?? 0,
     quantity: item.quantity,
   }));
 
@@ -82,13 +71,13 @@ export default async function CheckoutPage({
       </header>
 
       <div className="mx-auto max-w-[1400px] px-5 pt-16 sm:px-8 lg:px-12">
-<CheckoutForm
-           isAuthenticated={Boolean(session?.user?.id)}
-           email={session?.user?.email ?? undefined}
-           items={items}
-           zones={zones}
-           showCancelledBanner={cancelled === "true"}
-         />
+        <CheckoutForm
+          isAuthenticated={Boolean(session?.user?.id)}
+          email={session?.user?.email ?? undefined}
+          items={items}
+          zones={zones}
+          showCancelledBanner={cancelled === "true"}
+        />
       </div>
     </div>
   );

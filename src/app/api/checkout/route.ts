@@ -17,7 +17,22 @@ const checkoutSchema = z.object({
   couponCode: z.string().optional(),
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+function getBaseUrl(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    // Ensure protocol is present — users often set just the domain
+    if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
+      return `https://${appUrl}`;
+    }
+    return appUrl.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
+const APP_URL = getBaseUrl();
 
 export async function POST(req: Request) {
   try {

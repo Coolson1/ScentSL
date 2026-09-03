@@ -4,7 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { randomUUID } from "node:crypto";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+function getBaseUrl(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
+      return `https://${appUrl}`;
+    }
+    return appUrl.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
+const APP_URL = getBaseUrl();
 
 /**
  * POST /api/orders/[id]/retry-payment

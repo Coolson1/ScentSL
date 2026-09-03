@@ -74,7 +74,19 @@ export async function createCheckoutSession(
   params: CreateCheckoutSessionParams
 ): Promise<{ id: string; redirectUrl: string }> {
   const url = `${MONIME_API_URL.replace(/\/+$/, "")}/checkout-sessions`;
-  const idempotencyKey = `checkout-${params.orderId}`;
+  // Use a unique idempotency key per attempt to avoid 409 conflicts on retries
+  const idempotencyKey = `checkout-${params.orderId}-${crypto.randomUUID()}`;
+
+  // Validate that successUrl and cancelUrl are valid absolute URLs (not localhost)
+  if (params.successUrl?.includes("localhost") || params.cancelUrl?.includes("localhost")) {
+    console.error("[Monime] successUrl or cancelUrl contains localhost — set NEXT_PUBLIC_APP_URL to your production domain", {
+      successUrl: params.successUrl,
+      cancelUrl: params.cancelUrl,
+    });
+    throw new Error(
+      "Payment configuration error: NEXT_PUBLIC_APP_URL is not set to your production domain. Please contact support."
+    );
+  }
 
   const body = {
     name:
@@ -92,6 +104,14 @@ export async function createCheckoutSession(
     },
   };
 
+  console.log("[Monime] createCheckoutSession request:", {
+    url,
+    lineItemCount: params.lineItems.length,
+    successUrl: params.successUrl,
+    cancelUrl: params.cancelUrl,
+    reference: params.orderId,
+  });
+
   const response = await fetch(url, {
     method: "POST",
     headers: getMonimeHeaders(idempotencyKey),
@@ -103,10 +123,20 @@ export async function createCheckoutSession(
   if (!response.ok) {
     console.error("[Monime] createCheckoutSession error:", {
       status: response.status,
-      data,
+      statusText: response.statusText,
+      data: JSON.stringify(data),
+      requestBody: JSON.stringify(body),
+      url,
     });
+    // Extract the most useful error message from the Monime response
+    const errorMessage =
+      data?.message ||
+      data?.error ||
+      data?.messages?.[0] ||
+      (typeof data === "string" ? data : null) ||
+      "Unknown error";
     throw new Error(
-      `Monime API error (${response.status}): ${data?.message || "Unknown error"}`
+      `Monime API error (${response.status}): ${errorMessage}`
     );
   }
 

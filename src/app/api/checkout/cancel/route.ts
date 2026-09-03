@@ -10,38 +10,39 @@ export async function POST(req: Request) {
 }
 
 async function handleCancel(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const orderId = searchParams.get("orderId");
+  try {
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get("orderId");
 
-  if (orderId) {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { payments: { where: { status: "PENDING" } } },
-    });
-
-    if (order && order.paymentStatus === "PENDING") {
-      // Mark the order as CANCELLED for both fulfillment and payment
-      await prisma.order.update({
+    if (orderId) {
+      const order = await prisma.order.findUnique({
         where: { id: orderId },
-        data: { 
-          paymentStatus: "CANCELLED",
-          status: "CANCELLED" 
-        },
+        include: { payments: { where: { status: "PENDING" } } },
       });
-      
-      // Mark all pending payments for this order as CANCELLED
-      for (const p of order.payments) {
-        await prisma.payment.update({
-          where: { id: p.id },
-          data: { status: "CANCELLED" },
+
+      if (order && order.paymentStatus === "PENDING") {
+        await prisma.order.update({
+          where: { id: orderId },
+          data: {
+            paymentStatus: "CANCELLED",
+            status: "CANCELLED",
+          },
         });
+
+        for (const p of order.payments) {
+          await prisma.payment.update({
+            where: { id: p.id },
+            data: { status: "CANCELLED" },
+          });
+        }
       }
     }
+  } catch (err) {
+    console.error("[Checkout Cancel] Error updating order:", err);
+    // Continue to redirect even if DB update fails
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const url = `${baseUrl}/checkout?cancelled=true`;
-  
-  // Use 303 See Other to ensure the browser converts a POST to a GET
-  return NextResponse.redirect(url, { status: 303 });
+  // Next.js standard redirect using the incoming request URL as base origin
+  const targetUrl = new URL("/checkout?cancelled=true", req.url);
+  return NextResponse.redirect(targetUrl);
 }
