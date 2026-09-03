@@ -37,6 +37,7 @@ export default async function AdminCategoriesPage() {
               <TableHead>Image</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Slug</TableHead>
+              <TableHead>Featured</TableHead>
               <TableHead>Products</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -45,7 +46,7 @@ export default async function AdminCategoriesPage() {
             {categories.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="py-8 text-center text-sm text-muted-foreground"
                 >
                   No categories yet.
@@ -61,6 +62,7 @@ export default async function AdminCategoriesPage() {
                           src={c.image}
                           alt=""
                           fill
+                          unoptimized
                           sizes="40px"
                           className="object-cover"
                         />
@@ -71,6 +73,17 @@ export default async function AdminCategoriesPage() {
                   </TableCell>
                   <TableCell className="font-medium">{c.name}</TableCell>
                   <TableCell className="text-muted-foreground">/{c.slug}</TableCell>
+                  <TableCell>
+                    {c.isFeatured ? (
+                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                        Featured
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                        Hidden
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>{c._count.products}</TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center gap-1">
@@ -80,6 +93,7 @@ export default async function AdminCategoriesPage() {
                           name: c.name,
                           slug: c.slug,
                           image: c.image,
+                          isFeatured: c.isFeatured,
                         }}
                       />
                       <DeleteCategoryButton

@@ -36,7 +36,7 @@ export function ProductGrid({
       stagger={0.06}
     >
       {products.map((product) => (
-        <RevealItem key={product.slug}>
+        <RevealItem key={product.slug} className="h-full">
           <ProductCard product={product} />
         </RevealItem>
       ))}

@@ -9,7 +9,11 @@ export default async function StoreLayout({
 }) {
   // Idempotent — only does work for signed-in users with a lingering
   // cart-session cookie. Cheap no-op for everyone else.
-  await mergeGuestCart();
+  try {
+    await mergeGuestCart();
+  } catch (error) {
+    console.error("[StoreLayout] mergeGuestCart failed:", error);
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-parchment text-ink antialiased">

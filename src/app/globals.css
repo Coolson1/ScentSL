@@ -70,6 +70,10 @@
 }
 
 :root {
+  --font-inter: 'Inter', sans-serif;
+  --font-cormorant: 'Cormorant Garamond', serif;
+  --font-fraunces: 'Fraunces', serif;
+
   --background: #FAFAFA;
   --foreground: #0A0A0A;
   --gold: #C9A84C;

@@ -1,15 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-/**
- * /checkout/retry?orderId=...
- *
- * Immediately calls the retry-payment API and redirects the user to Monime.
- * Shows a loading state while the session is being created.
- */
-export default function RetryPaymentPage() {
+function RetryPaymentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
@@ -48,5 +42,22 @@ export default function RetryPaymentPage() {
         Redirecting you to the payment page…
       </p>
     </div>
+  );
+}
+
+export default function RetryPaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 px-5 py-24 text-center">
+          <div
+            className="h-10 w-10 animate-spin rounded-full border-2 border-brand-gold/30 border-t-brand-gold"
+            aria-label="Loading"
+          />
+        </div>
+      }
+    >
+      <RetryPaymentContent />
+    </Suspense>
   );
 }

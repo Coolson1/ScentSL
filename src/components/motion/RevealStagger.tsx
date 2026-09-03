@@ -16,7 +16,7 @@ const parentVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 1, y: 28 },
   show: {
     opacity: 1,
     y: 0,
@@ -61,7 +61,7 @@ export function RevealStagger({
     <Tag
       initial="hidden"
       whileInView="show"
-      viewport={{ once, margin: "-8% 0px -8% 0px" }}
+      viewport={{ once, margin: "0px" }}
       variants={variants}
       className={className}
     >
@@ -86,7 +86,12 @@ export function RevealItem({ children, className, as = "div" }: RevealItemProps)
   const Tag = motion[as] as typeof motion.div;
 
   return (
-    <Tag variants={itemVariants} className={className}>
+    <Tag
+      variants={itemVariants}
+      // Ensure content is visible in the server-rendered HTML before JS hydrates
+      style={{ opacity: 1 }}
+      className={className}
+    >
       {children}
     </Tag>
   );

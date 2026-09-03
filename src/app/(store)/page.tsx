@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { prisma } from "@/lib/prisma";
+import { prisma, withRetry } from "@/lib/prisma";
 import { ProductGrid } from "@/components/store/ProductGrid";
 import { Hero } from "@/components/store/Hero";
 import { NotesMarquee } from "@/components/store/NotesMarquee";
@@ -13,18 +13,23 @@ import { Reveal } from "@/components/motion/Reveal";
 export const revalidate = 60;
 
 async function loadHomepageData() {
-  const [featured, categories] = await Promise.all([
-    prisma.product.findMany({
-      where: { isFeatured: true, isActive: true },
-      include: {
-        variants: { select: { price: true, stock: true } },
-        category: { select: { name: true } },
-      },
-      take: 8,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
-  ]);
+  const [featured, categories] = await withRetry(() =>
+    Promise.all([
+      prisma.product.findMany({
+        where: { isFeatured: true, isActive: true },
+        include: {
+          variants: { select: { price: true, stock: true } },
+          category: { select: { name: true } },
+        },
+        take: 8,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.category.findMany({
+        where: { isFeatured: true },
+        orderBy: { name: "asc" },
+      }),
+    ]),
+  );
   return { featured, categories };
 }
 
@@ -38,7 +43,7 @@ export default async function HomePage() {
       <NotesMarquee />
 
       {/* Featured */}
-      <section className="bg-parchment py-16 sm:py-24 lg:py-32\">
+      <section className="bg-parchment py-16 sm:py-24 lg:py-32">
         <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12">
           <Reveal className="mb-16 flex flex-col items-baseline justify-between gap-6 sm:flex-row">
             <div>

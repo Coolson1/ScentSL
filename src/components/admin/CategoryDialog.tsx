@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { ImageUploader } from "./ImageUploader";
 import { generateSlug } from "@/lib/utils";
 
@@ -29,6 +30,7 @@ const schema = z.object({
     .min(1, "Slug is required")
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers, hyphens only"),
   image: z.string().url().nullable().optional(),
+  isFeatured: z.boolean(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -37,7 +39,7 @@ export function CategoryDialog({
   category,
   trigger,
 }: {
-  category?: { id: string; name: string; slug: string; image: string | null };
+  category?: { id: string; name: string; slug: string; image: string | null; isFeatured?: boolean };
   trigger?: React.ReactNode;
 }) {
   const router = useRouter();
@@ -51,6 +53,7 @@ export function CategoryDialog({
       name: category?.name ?? "",
       slug: category?.slug ?? "",
       image: category?.image ?? null,
+      isFeatured: category?.isFeatured ?? true,
     },
   });
 
@@ -59,6 +62,7 @@ export function CategoryDialog({
       name: category?.name ?? "",
       slug: category?.slug ?? "",
       image: category?.image ?? null,
+      isFeatured: category?.isFeatured ?? true,
     });
   }
 
@@ -162,6 +166,29 @@ export function CategoryDialog({
             />
           </div>
 
+          <Controller
+            control={form.control}
+            name="isFeatured"
+            render={({ field }) => (
+              <label
+                htmlFor="cat-is-featured"
+                className="flex cursor-pointer items-center justify-between rounded-md border p-3 shadow-xs"
+              >
+                <div>
+                  <span className="block text-sm font-medium">Featured on homepage</span>
+                  <span className="block text-xs text-muted-foreground">
+                    Display this category in the showcase grid on the homepage
+                  </span>
+                </div>
+                <Switch
+                  id="cat-is-featured"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </label>
+            )}
+          />
+
           <DialogFooter>
             <Button
               type="button"
@@ -184,7 +211,7 @@ export function CategoryDialog({
   );
 }
 
-export function EditCategoryButton(props: { category: { id: string; name: string; slug: string; image: string | null } }) {
+export function EditCategoryButton(props: { category: { id: string; name: string; slug: string; image: string | null; isFeatured?: boolean } }) {
   return (
     <CategoryDialog
       category={props.category}

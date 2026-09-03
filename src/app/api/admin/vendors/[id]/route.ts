@@ -136,17 +136,46 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const productCount = await prisma.product.count({ where: { vendorId: id } });
-  const orderItemCount = await prisma.orderItem.count({ where: { vendorId: id } });
+  const products = await prisma.product.findMany({
+    where: { vendorId: id },
+    select: { id: true },
+  });
+  const productIds = products.map((p) => p.id);
 
-  if (productCount > 0 || orderItemCount > 0) {
-    return NextResponse.json(
-      {
-        error: `Cannot delete vendor with ${productCount} products and ${orderItemCount} order items. Suspend or reassign products first.`,
-      },
-      { status: 400 }
-    );
+  if (productIds.length > 0) {
+    const variants = await prisma.productVariant.findMany({
+      where: { productId: { in: productIds } },
+      select: { id: true },
+    });
+    const variantIds = variants.map((v) => v.id);
+
+    if (variantIds.length > 0) {
+      await prisma.orderItem.deleteMany({
+        where: { variantId: { in: variantIds } },
+      });
+      await prisma.cartItem.deleteMany({
+        where: { variantId: { in: variantIds } },
+      });
+      await prisma.productVariant.deleteMany({
+        where: { id: { in: variantIds } },
+      });
+    }
+
+    await prisma.wishlistItem.deleteMany({
+      where: { productId: { in: productIds } },
+    });
+    await prisma.review.deleteMany({
+      where: { productId: { in: productIds } },
+    });
+    await prisma.product.deleteMany({
+      where: { id: { in: productIds } },
+    });
   }
+
+  // Also vendor might have direct orderItems linked via vendorId
+  await prisma.orderItem.deleteMany({
+    where: { vendorId: id },
+  });
 
   await prisma.vendor.delete({ where: { id } });
 

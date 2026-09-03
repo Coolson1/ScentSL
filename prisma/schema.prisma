@@ -103,11 +103,12 @@ model VerificationToken {
 // ─── Catalogue ────────────────────────────────────────────
 
 model Category {
-  id       String    @id @default(cuid())
-  name     String
-  slug     String    @unique
-  image    String?
-  products Product[]
+  id         String    @id @default(cuid())
+  name       String
+  slug       String    @unique
+  image      String?
+  isFeatured Boolean   @default(true)
+  products   Product[]
 }
 
 model Vendor {
@@ -139,8 +140,8 @@ model Product {
   isFeatured    Boolean          @default(false)
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
-  category      Category         @relation(fields: [categoryId], references: [id])
-  vendor        Vendor?          @relation(fields: [vendorId], references: [id])
+  category      Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  vendor        Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   variants      ProductVariant[]
   wishlistItems WishlistItem[]
   reviews       Review[]
@@ -200,8 +201,8 @@ model Address {
   streetAddress  String
   city           String
   deliveryZoneId String
-  user           User?        @relation(fields: [userId], references: [id])
-  deliveryZone   DeliveryZone @relation(fields: [deliveryZoneId], references: [id])
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveryZone   DeliveryZone @relation(fields: [deliveryZoneId], references: [id], onDelete: Cascade)
   orders         Order[]
 }
 
@@ -240,10 +241,10 @@ model Order {
   monimeReference String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  user            User?         @relation(fields: [userId], references: [id])
-  deliveryZone    DeliveryZone  @relation(fields: [deliveryZoneId], references: [id])
-  address         Address       @relation(fields: [addressId], references: [id])
-  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveryZone    DeliveryZone  @relation(fields: [deliveryZoneId], references: [id], onDelete: Cascade)
+  address         Address       @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  coupon          Coupon?       @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items           OrderItem[]
   payments        Payment[]
 }
@@ -260,9 +261,9 @@ model OrderItem {
   commissionAmount Int            @default(0)
   vendorAmount     Int            @default(0)
   order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variant          ProductVariant @relation(fields: [variantId], references: [id])
-  product          Product        @relation(fields: [productId], references: [id])
-  vendor           Vendor?        @relation(fields: [vendorId], references: [id])
+  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vendor           Vendor?        @relation(fields: [vendorId], references: [id], onDelete: SetNull)
 }
 
 // ─── Wishlist & Reviews ───────────────────────────────────
@@ -272,7 +273,7 @@ model WishlistItem {
   userId    String
   productId String
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
@@ -285,7 +286,7 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }

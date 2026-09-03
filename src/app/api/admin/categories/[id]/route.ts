@@ -42,6 +42,7 @@ export async function PATCH(
       name: parsed.data.name,
       slug: parsed.data.slug,
       image: parsed.data.image ?? null,
+      isFeatured: parsed.data.isFeatured ?? true,
     },
   });
 
@@ -58,14 +59,40 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const productCount = await prisma.product.count({ where: { categoryId: id } });
-  if (productCount > 0) {
-    return NextResponse.json(
-      {
-        error: `Cannot delete: ${productCount} product${productCount === 1 ? "" : "s"} still use this category.`,
-      },
-      { status: 409 },
-    );
+  const products = await prisma.product.findMany({
+    where: { categoryId: id },
+    select: { id: true },
+  });
+  const productIds = products.map((p) => p.id);
+
+  if (productIds.length > 0) {
+    const variants = await prisma.productVariant.findMany({
+      where: { productId: { in: productIds } },
+      select: { id: true },
+    });
+    const variantIds = variants.map((v) => v.id);
+
+    if (variantIds.length > 0) {
+      await prisma.orderItem.deleteMany({
+        where: { variantId: { in: variantIds } },
+      });
+      await prisma.cartItem.deleteMany({
+        where: { variantId: { in: variantIds } },
+      });
+      await prisma.productVariant.deleteMany({
+        where: { id: { in: variantIds } },
+      });
+    }
+
+    await prisma.wishlistItem.deleteMany({
+      where: { productId: { in: productIds } },
+    });
+    await prisma.review.deleteMany({
+      where: { productId: { in: productIds } },
+    });
+    await prisma.product.deleteMany({
+      where: { id: { in: productIds } },
+    });
   }
 
   await prisma.category.delete({ where: { id } });

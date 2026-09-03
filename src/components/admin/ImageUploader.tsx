@@ -95,8 +95,9 @@ export function ImageUploader({ value, onChange, max = 5 }: Props) {
           >
             <Image
               src={url}
-              alt="Product image"
+              alt="Uploaded image"
               fill
+              unoptimized
               sizes="(max-width: 640px) 50vw, 20vw"
               className="object-cover"
             />

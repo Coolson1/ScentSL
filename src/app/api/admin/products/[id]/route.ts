@@ -133,15 +133,30 @@ export async function DELETE(
     return NextResponse.json({ error: "Product not found" }, { status: 404 });
   }
 
-  const orderRefs = await prisma.orderItem.count({ where: { productId: id } });
+  const variants = await prisma.productVariant.findMany({
+    where: { productId: id },
+    select: { id: true },
+  });
+  const variantIds = variants.map((v) => v.id);
 
-  if (orderRefs > 0) {
-    await prisma.product.update({
-      where: { id },
-      data: { isActive: false },
+  if (variantIds.length > 0) {
+    await prisma.orderItem.deleteMany({
+      where: { variantId: { in: variantIds } },
     });
-    return NextResponse.json({ softDeleted: true });
+    await prisma.cartItem.deleteMany({
+      where: { variantId: { in: variantIds } },
+    });
+    await prisma.productVariant.deleteMany({
+      where: { id: { in: variantIds } },
+    });
   }
+
+  await prisma.wishlistItem.deleteMany({
+    where: { productId: id },
+  });
+  await prisma.review.deleteMany({
+    where: { productId: id },
+  });
 
   await prisma.product.delete({ where: { id } });
   return NextResponse.json({ deleted: true });

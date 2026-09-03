@@ -47,10 +47,19 @@ export function Reveal({
 
   return (
     <Tag
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once, margin: "-10% 0px -10% 0px" }}
-      transition={{ duration, delay, ease: EASE }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once, margin: "0px" }}
+      variants={{
+        hidden: { opacity: 1, y },
+        visible: {
+          opacity: 1,
+          y: 0,
+          transition: { duration, delay, ease: EASE },
+        },
+      }}
+      // Ensure content is visible in the server-rendered HTML before JS hydrates
+      style={{ opacity: 1 }}
       className={className}
     >
       {children}

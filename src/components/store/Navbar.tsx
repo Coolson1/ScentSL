@@ -7,16 +7,21 @@ import { UserMenu } from "./UserMenu";
 import { NavbarShell } from "./NavbarShell";
 
 async function loadHeaderState() {
-  const session = await auth();
-  const cookieStore = await cookies();
-  const guestSessionId = cookieStore.get(CART_SESSION_COOKIE)?.value ?? null;
+  try {
+    const session = await auth();
+    const cookieStore = await cookies();
+    const guestSessionId = cookieStore.get(CART_SESSION_COOKIE)?.value ?? null;
 
-  const cartCount = await getCartItemCount({
-    userId: session?.user?.id ?? null,
-    sessionId: session?.user?.id ? null : guestSessionId,
-  });
+    const cartCount = await getCartItemCount({
+      userId: session?.user?.id ?? null,
+      sessionId: session?.user?.id ? null : guestSessionId,
+    });
 
-  return { session, cartCount };
+    return { session, cartCount };
+  } catch (error) {
+    console.error("[Navbar] Failed to load header state:", error);
+    return { session: null, cartCount: 0 };
+  }
 }
 
 export async function Navbar() {

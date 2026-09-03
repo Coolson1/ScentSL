@@ -42,6 +42,7 @@ export async function POST(req: Request) {
       name: parsed.data.name,
       slug: parsed.data.slug,
       image: parsed.data.image ?? null,
+      isFeatured: parsed.data.isFeatured ?? true,
     },
   });
 

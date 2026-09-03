@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { prisma, withRetry } from "./prisma";
 
 export const CART_SESSION_COOKIE = "cart-session";
 export const CART_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -45,10 +45,12 @@ export async function getCartWithItems(identity: Identity) {
 }
 
 export async function getCartItemCount(identity: Identity) {
-  const cart = await prisma.cart.findUnique({
-    where: whereFor(identity) ?? { id: "__none__" },
-    include: { items: { select: { quantity: true } } },
-  });
+  const cart = await withRetry(() =>
+    prisma.cart.findUnique({
+      where: whereFor(identity) ?? { id: "__none__" },
+      include: { items: { select: { quantity: true } } },
+    }),
+  );
   if (!cart) return 0;
   return cart.items.reduce((sum, item) => sum + item.quantity, 0);
 }

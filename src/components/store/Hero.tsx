@@ -35,7 +35,7 @@ export function Hero() {
         {/* LEFT — editorial copy */}
         <div className="relative z-10 lg:col-span-7">
           <motion.p
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 1, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: easeOut }}
             className="text-[10px] uppercase tracking-[0.5em] text-brand-gold"
@@ -52,7 +52,7 @@ export function Hero() {
           </h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 1, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: easeOut, delay: 0.5 }}
             className="mt-10 max-w-md font-serif text-lg leading-relaxed text-ink/75"
@@ -63,7 +63,7 @@ export function Hero() {
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 1, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: easeOut, delay: 0.62 }}
             className="mt-10 flex flex-wrap items-center gap-7"
@@ -88,7 +88,7 @@ export function Hero() {
 
           {/* lower meta */}
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2, delay: 0.9 }}
             className="mt-16 grid max-w-md grid-cols-3 gap-6 border-t border-ink/12 pt-6 text-[10px] uppercase tracking-[0.28em] text-ink/55"
@@ -110,7 +110,7 @@ export function Hero() {
 
         {/* RIGHT — arched image */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 1, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, ease: easeOut, delay: 0.2 }}
           className="relative z-10 lg:col-span-5"

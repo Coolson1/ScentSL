@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { RevealItem, RevealStagger } from "@/components/motion/RevealStagger";
 import { Reveal } from "@/components/motion/Reveal";
@@ -29,8 +30,6 @@ const DEFAULT_IMAGE =
 export function CategoryShowcase({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 
-  const items = categories.slice(0, 6);
-
   return (
     <section className="relative bg-parchment py-16 sm:py-24 lg:py-32">
       <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12">
@@ -56,8 +55,8 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
           className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
           stagger={0.08}
         >
-          {items.map((category, i) => (
-            <RevealItem key={category.id}>
+          {categories.map((category, i) => (
+            <RevealItem key={category.id} className="h-full">
               <CategoryCard category={category} index={i} />
             </RevealItem>
           ))}
@@ -75,36 +74,28 @@ function CategoryCard({
   index: number;
 }) {
   const image =
-    category.image ?? FALLBACK_IMAGES[category.slug] ?? DEFAULT_IMAGE;
-
-  // editorial cadence — vary heights
-  const heightCls =
-    index % 3 === 1
-      ? "aspect-[3/4.4]"
-      : index % 3 === 2
-        ? "aspect-[3/4]"
-        : "aspect-[3/4.2]";
+    category.image || FALLBACK_IMAGES[category.slug] || DEFAULT_IMAGE;
 
   return (
     <Link
       href={`/products?category=${category.slug}`}
-      className={`group/cat relative block ${
-        index === 1 ? "lg:translate-y-10" : index === 2 ? "lg:translate-y-4" : ""
-      }`}
+      className="group/cat relative block h-full"
     >
-      <div className={`relative overflow-hidden bg-ink/5 ${heightCls}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-ink/5">
+        <Image
           src={image}
           alt={category.name}
-          className="size-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/cat:scale-[1.06]"
+          fill
+          unoptimized
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/cat:scale-[1.06]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent opacity-90 transition-opacity duration-500 group-hover/cat:opacity-70" />
 
         <div className="absolute inset-x-6 bottom-6 flex items-end justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-[0.32em] text-brand-gold">
-              Chapitre · 0{index + 1}
+              Chapitre · {String(index + 1).padStart(2, "0")}
             </p>
             <h3 className="mt-2 font-display text-3xl font-light leading-none text-parchment sm:text-4xl">
               {category.name}
