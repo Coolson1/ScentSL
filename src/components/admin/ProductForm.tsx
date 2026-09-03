@@ -36,6 +36,7 @@ const formSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),
+  isPopular: z.boolean(),
   isActive: z.boolean(),
   variants: z
     .array(
@@ -64,6 +65,7 @@ export type ProductDefaults = {
   description: string;
   images: string[];
   isFeatured: boolean;
+  isPopular?: boolean;
   isActive: boolean;
   variants: {
     id?: string;
@@ -82,6 +84,7 @@ const EMPTY_DEFAULTS: ProductDefaults = {
   description: "",
   images: [],
   isFeatured: false,
+  isPopular: false,
   isActive: true,
   variants: [{ size: "", price: 0, stock: 0 }],
 };
@@ -110,6 +113,7 @@ export function ProductForm({
       description: defaults.description,
       images: defaults.images,
       isFeatured: defaults.isFeatured,
+      isPopular: defaults.isPopular ?? false,
       isActive: defaults.isActive,
       variants: defaults.variants.map((v) => ({
         id: v.id,
@@ -139,6 +143,7 @@ export function ProductForm({
       description: values.description,
       images: values.images,
       isFeatured: values.isFeatured,
+      isPopular: values.isPopular,
       isActive: values.isActive,
       variants: values.variants.map((v) => ({
         id: v.id,
@@ -308,6 +313,19 @@ export function ProductForm({
                   id="isFeatured"
                   label="Featured"
                   hint="Shown on homepage"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+            <Controller
+              control={form.control}
+              name="isPopular"
+              render={({ field }) => (
+                <ToggleField
+                  id="isPopular"
+                  label="Popular"
+                  hint="Shown in Most Popular"
                   checked={field.value}
                   onChange={field.onChange}
                 />

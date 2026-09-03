@@ -56,6 +56,7 @@ export async function POST(req: Request) {
       vendorId: data.vendorId || null,
       images: data.images,
       isFeatured: data.isFeatured,
+      isPopular: data.isPopular,
       isActive: data.isActive,
       variants: {
         create: data.variants.map((v) => ({

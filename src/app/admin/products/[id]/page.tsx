@@ -55,6 +55,7 @@ export default async function EditProductPage({
           description: product.description,
           images: product.images,
           isFeatured: product.isFeatured,
+          isPopular: product.isPopular,
           isActive: product.isActive,
           variants: product.variants.map((v) => ({
             id: v.id,

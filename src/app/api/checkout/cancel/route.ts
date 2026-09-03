@@ -17,10 +17,10 @@ async function handleCancel(req: Request) {
     if (orderId) {
       const order = await prisma.order.findUnique({
         where: { id: orderId },
-        include: { payments: { where: { status: "PENDING" } } },
+        include: { payments: true },
       });
 
-      if (order && order.paymentStatus === "PENDING") {
+      if (order && order.paymentStatus !== "PAID") {
         await prisma.order.update({
           where: { id: orderId },
           data: {
@@ -30,10 +30,12 @@ async function handleCancel(req: Request) {
         });
 
         for (const p of order.payments) {
-          await prisma.payment.update({
-            where: { id: p.id },
-            data: { status: "CANCELLED" },
-          });
+          if (p.status !== "PAID") {
+            await prisma.payment.update({
+              where: { id: p.id },
+              data: { status: "CANCELLED" },
+            });
+          }
         }
       }
     }

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { VendorStatus } from "@/generated/prisma/enums";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function statusBadge(status: VendorStatus) {
@@ -71,6 +72,7 @@ export default async function VendorDetailPage({
             select: {
               id: true,
               status: true,
+              paymentStatus: true,
               createdAt: true,
               user: { select: { name: true, email: true } },
               guestEmail: true,
@@ -86,9 +88,12 @@ export default async function VendorDetailPage({
 
   if (!vendor) notFound();
 
-  const totalSales = vendor.orderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const totalCommission = vendor.orderItems.reduce((sum, i) => sum + i.commissionAmount, 0);
-  const totalVendorAmount = vendor.orderItems.reduce((sum, i) => sum + i.vendorAmount, 0);
+  const paidOrderItems = vendor.orderItems.filter(
+    (i) => i.order.paymentStatus === "PAID" && i.order.status !== "CANCELLED"
+  );
+  const totalSales = paidOrderItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const totalCommission = paidOrderItems.reduce((sum, i) => sum + i.commissionAmount, 0);
+  const totalVendorAmount = paidOrderItems.reduce((sum, i) => sum + i.vendorAmount, 0);
 
   return (
     <div className="space-y-8">

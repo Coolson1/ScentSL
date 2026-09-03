@@ -75,6 +75,7 @@ export async function PATCH(
         vendorId: data.vendorId || null,
         images: data.images,
         isFeatured: data.isFeatured,
+        isPopular: data.isPopular,
         isActive: data.isActive,
       },
     });

@@ -31,9 +31,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
+  const newStatus = parsed.data.status;
+  const updateData: { status: OrderStatus; paymentStatus?: "CANCELLED" | "PAID" } = {
+    status: newStatus,
+  };
+  if (newStatus === "CANCELLED") {
+    updateData.paymentStatus = "CANCELLED";
+  } else if (newStatus === "PAID") {
+    updateData.paymentStatus = "PAID";
+  }
+
   const order = await prisma.order.update({
     where: { id },
-    data: { status: parsed.data.status },
+    data: updateData,
   });
 
   return NextResponse.json({ order });

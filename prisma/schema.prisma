@@ -147,6 +147,7 @@ model Product {
   vendorId      String?
   images        String[]
   isFeatured    Boolean          @default(false)
+  isPopular     Boolean          @default(false)
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
   category      Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -159,6 +160,7 @@ model Product {
   @@index([categoryId])
   @@index([vendorId])
   @@index([isActive, isFeatured])
+  @@index([isActive, isPopular])
   @@index([isActive, createdAt])
 }
 

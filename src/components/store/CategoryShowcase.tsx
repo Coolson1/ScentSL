@@ -36,7 +36,7 @@ export function CategoryShowcase({ categories }: { categories: Category[] }) {
         <Reveal className="mb-16 flex flex-col items-baseline justify-between gap-6 sm:flex-row">
           <div>
             <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-              Chapter II
+              Chapter III
             </p>
             <h2 className="mt-3 font-display text-[clamp(2.4rem,5vw,4rem)] font-light leading-[0.95] tracking-[-0.01em] text-ink">
               Explore <em className="italic text-brand-gold">by note</em>

@@ -3,8 +3,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/motion/Reveal";
 import { ParallaxImage } from "@/components/motion/ParallaxImage";
 
-const SPLIT_IMAGE =
-  "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&w=1200&q=80";
+const SPLIT_IMAGE = "/images/ysl_libre_bottle.jpg";
 
 export function EditorialSplit() {
   return (
@@ -16,7 +15,7 @@ export function EditorialSplit() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={SPLIT_IMAGE}
-                alt="Hands cradling a perfume bottle against linen"
+                alt="Libre | YSL"
                 className="size-full object-cover"
               />
             </ParallaxImage>

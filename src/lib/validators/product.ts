@@ -19,6 +19,7 @@ export const productInputSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),
+  isPopular: z.boolean().default(false),
   isActive: z.boolean(),
   variants: z.array(variantInputSchema).min(1, "At least one variant is required"),
 });

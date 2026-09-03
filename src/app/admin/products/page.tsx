@@ -106,13 +106,25 @@ export default async function AdminProductsPage({
                   <TableCell>{p.category.name}</TableCell>
                   <TableCell>{p._count.variants}</TableCell>
                   <TableCell>
-                    {p.isActive ? (
-                      <Badge className="bg-brand-gold/15 text-brand-gold hover:bg-brand-gold/20">
-                        Active
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactive</Badge>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1">
+                      {p.isActive ? (
+                        <Badge className="bg-brand-gold/15 text-brand-gold hover:bg-brand-gold/20">
+                          Active
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">Inactive</Badge>
+                      )}
+                      {p.isFeatured && (
+                        <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50/50">
+                          Featured
+                        </Badge>
+                      )}
+                      {p.isPopular && (
+                        <Badge variant="outline" className="border-purple-500/30 text-purple-600 bg-purple-50/50">
+                          Popular
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center gap-1">

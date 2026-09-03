@@ -11,11 +11,12 @@ function createPrismaClient() {
   return new PrismaClient({ adapter });
 }
 
-// Re-use a single Prisma instance across hot-reloads and lambda re-invocations to avoid
-// exhausting connection limits and cold-start timeouts in serverless environments.
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-globalForPrisma.prisma = prisma;
+// Re-use a single Prisma instance in production to avoid connection leaks,
+// but refresh in development so schema updates (e.g. new fields) take effect immediately.
+export const prisma =
+  process.env.NODE_ENV === "production"
+    ? (globalForPrisma.prisma ??= createPrismaClient())
+    : (globalForPrisma.prisma = createPrismaClient());
 
 /**
  * Execute a DB query with retry logic to handle Neon cold-start failures.

@@ -47,6 +47,12 @@ export async function GET(req: Request) {
         select: { products: true, orderItems: true },
       },
       orderItems: {
+        where: {
+          order: {
+            paymentStatus: "PAID",
+            status: { not: "CANCELLED" },
+          },
+        },
         select: {
           price: true,
           quantity: true,

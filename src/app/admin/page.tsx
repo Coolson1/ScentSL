@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/admin/StatCard";
 import { RevenueChart, type RevenuePoint } from "@/components/admin/RevenueChart";
 import { OrderStatusChart, type StatusSlice } from "@/components/admin/OrderStatusChart";
-import { OrderStatus } from "@/generated/prisma/enums";
+import { OrderStatus, PaymentStatus } from "@/generated/prisma/enums";
 
 function startOfToday() {
   const d = new Date();
@@ -43,6 +43,8 @@ function bucketRevenue(orders: { createdAt: Date; total: number }[]): RevenuePoi
   return Array.from(buckets.entries()).map(([day, total]) => ({ day, total }));
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminDashboardPage() {
   const today = startOfToday();
   const monthStart = thirtyDaysAgo();
@@ -57,7 +59,8 @@ export default async function AdminDashboardPage() {
   ] = await Promise.all([
     prisma.order.aggregate({
       where: {
-        status: { not: OrderStatus.PENDING },
+        paymentStatus: PaymentStatus.PAID,
+        status: { not: OrderStatus.CANCELLED },
         createdAt: { gte: today },
       },
       _sum: { total: true },
@@ -67,7 +70,8 @@ export default async function AdminDashboardPage() {
     prisma.productVariant.count({ where: { stock: { lt: 5, gt: 0 } } }),
     prisma.order.findMany({
       where: {
-        status: { not: OrderStatus.PENDING },
+        paymentStatus: PaymentStatus.PAID,
+        status: { not: OrderStatus.CANCELLED },
         createdAt: { gte: monthStart },
       },
       select: { createdAt: true, total: true },

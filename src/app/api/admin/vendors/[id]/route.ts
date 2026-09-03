@@ -45,6 +45,7 @@ export async function GET(
             select: {
               id: true,
               status: true,
+              paymentStatus: true,
               createdAt: true,
               user: { select: { name: true, email: true } },
               guestEmail: true,
@@ -62,15 +63,18 @@ export async function GET(
     return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
   }
 
-  const totalSales = vendor.orderItems.reduce(
+  const paidItems = vendor.orderItems.filter(
+    (item) => item.order.paymentStatus === "PAID" && item.order.status !== "CANCELLED"
+  );
+  const totalSales = paidItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const totalCommission = vendor.orderItems.reduce(
+  const totalCommission = paidItems.reduce(
     (sum, item) => sum + item.commissionAmount,
     0
   );
-  const totalVendorAmount = vendor.orderItems.reduce(
+  const totalVendorAmount = paidItems.reduce(
     (sum, item) => sum + item.vendorAmount,
     0
   );

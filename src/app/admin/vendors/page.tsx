@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { VendorStatus } from "@/generated/prisma/enums";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 function statusBadge(status: VendorStatus) {
@@ -57,6 +58,12 @@ export default async function VendorsPage({
     include: {
       _count: { select: { products: true, orderItems: true } },
       orderItems: {
+        where: {
+          order: {
+            paymentStatus: "PAID",
+            status: { not: "CANCELLED" },
+          },
+        },
         select: {
           price: true,
           quantity: true,

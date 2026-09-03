@@ -60,61 +60,83 @@ export async function POST(req: Request) {
     (sessionData.checkoutSessionId as string) ||
     (sessionData.sessionId as string);
 
-  if (!monimeSessionId) {
-    console.warn("[Webhook/Monime] No session ID in event:", event);
+  const orderReference =
+    (sessionData.reference as string) ||
+    (sessionData.orderId as string);
+
+  if (!monimeSessionId && !orderReference) {
+    console.warn("[Webhook/Monime] No session ID or reference in event:", event);
     return NextResponse.json({ received: true });
   }
 
   // ── 4. Handle checkout_session.completed ──────────────────
   if (
     eventType === "checkout_session.completed" ||
+    eventType === "checkout.session.completed" ||
     eventType === "checkout.completed" ||
     eventType === "payment.completed" ||
-    (sessionData.status === "completed")
+    eventType === "payment.paid" ||
+    eventType === "payment.success" ||
+    sessionData.status === "completed" ||
+    sessionData.status === "paid" ||
+    sessionData.status === "successful"
   ) {
-    await handlePaymentSuccess(monimeSessionId, rawBody);
+    await handlePaymentSuccess(monimeSessionId, orderReference, rawBody);
   }
 
   // ── 5. Handle failed/cancelled/expired ────────────────────
   else if (
     eventType === "checkout_session.failed" ||
+    eventType === "checkout.session.failed" ||
     eventType === "payment.failed" ||
     sessionData.status === "failed"
   ) {
-    await handlePaymentFailed(monimeSessionId, "FAILED");
+    await handlePaymentFailed(monimeSessionId, orderReference, "FAILED");
   } else if (
     eventType === "checkout_session.cancelled" ||
-    sessionData.status === "cancelled"
+    eventType === "checkout.session.cancelled" ||
+    eventType === "payment.cancelled" ||
+    sessionData.status === "cancelled" ||
+    sessionData.status === "canceled"
   ) {
-    await handlePaymentFailed(monimeSessionId, "CANCELLED");
+    await handlePaymentFailed(monimeSessionId, orderReference, "CANCELLED");
   } else if (
     eventType === "checkout_session.expired" ||
+    eventType === "checkout.session.expired" ||
+    eventType === "payment.expired" ||
     sessionData.status === "expired"
   ) {
-    await handlePaymentFailed(monimeSessionId, "EXPIRED");
+    await handlePaymentFailed(monimeSessionId, orderReference, "EXPIRED");
   }
 
   return NextResponse.json({ received: true });
 }
 
 async function handlePaymentSuccess(
-  monimeSessionId: string,
+  monimeSessionId: string | undefined,
+  orderReference: string | undefined,
   rawBody: string
 ) {
-  // ── Idempotency: find payment by session ID ──────────────
-  const payment = await prisma.payment.findUnique({
-    where: { monimeSessionId },
-    include: {
-      order: {
-        include: { items: true },
-      },
-    },
-  });
+  // ── Idempotency: find payment by session ID or fallback to orderId ──────────────
+  let payment = monimeSessionId
+    ? await prisma.payment.findUnique({
+        where: { monimeSessionId },
+        include: { order: { include: { items: true } } },
+      })
+    : null;
+
+  if (!payment && orderReference) {
+    payment = await prisma.payment.findFirst({
+      where: { orderId: orderReference },
+      include: { order: { include: { items: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
   if (!payment) {
     console.warn(
-      "[Webhook/Monime] No payment found for session:",
-      monimeSessionId
+      "[Webhook/Monime] No payment found for session/ref:",
+      monimeSessionId || orderReference
     );
     return;
   }
@@ -122,19 +144,18 @@ async function handlePaymentSuccess(
   // Already processed — idempotent exit
   if (payment.status === "PAID") {
     console.log(
-      "[Webhook/Monime] Payment already processed for session:",
-      monimeSessionId
+      "[Webhook/Monime] Payment already processed for session/ref:",
+      monimeSessionId || orderReference
     );
     return;
   }
 
   const order = payment.order;
 
-  // ── Mark PAID + decrement stock + clear bag (sequential, Neon HTTP compatible) ─
+  // ── Mark PAID + decrement stock + clear bag (ACID transaction) ──
   try {
     const now = new Date();
 
-    // Wrap all state updates in a single ACID transaction
     await prisma.$transaction(async (tx) => {
       // 1. Atomic update to prevent race conditions
       const updateResult = await tx.payment.updateMany({
@@ -152,8 +173,8 @@ async function handlePaymentSuccess(
 
       if (updateResult.count === 0) {
         console.log(
-          "[Webhook/Monime] Payment already processed concurrently for session:",
-          monimeSessionId
+          "[Webhook/Monime] Payment already processed concurrently for session/ref:",
+          monimeSessionId || orderReference
         );
         return;
       }
@@ -172,7 +193,7 @@ async function handlePaymentSuccess(
         const stockResult = await tx.productVariant.updateMany({
           where: {
             id: item.variantId,
-            stock: { gte: item.quantity }, // Guard: stock must be >= item.quantity
+            stock: { gte: item.quantity },
           },
           data: {
             stock: { decrement: item.quantity },
@@ -181,9 +202,8 @@ async function handlePaymentSuccess(
 
         if (stockResult.count === 0) {
           console.error(
-            `[Webhook/Monime] Stock guard triggered: Variant ${item.variantId} has insufficient stock for Order ${order.id}. Preventing negative stock!`
+            `[Webhook/Monime] Stock guard triggered: Variant ${item.variantId} has insufficient stock for Order ${order.id}.`
           );
-          // Mark order as CANCELLED for fulfillment while preserving paymentStatus PAID for refund handling
           await tx.order.update({
             where: { id: order.id },
             data: {
@@ -195,7 +215,7 @@ async function handlePaymentSuccess(
         }
       }
 
-      // 4. Clear the customer's bag
+      // 4. Clear customer bag
       if (order.userId) {
         const userCart = await tx.cart.findUnique({
           where: { userId: order.userId },
@@ -208,30 +228,35 @@ async function handlePaymentSuccess(
 
     console.log(
       `[Webhook/Monime] Order ${order.id} (${order.orderNumber}) marked PAID`
-
     );
   } catch (err) {
     console.error(
-      "[Webhook/Monime] Transaction failed for session:",
-      monimeSessionId,
+      "[Webhook/Monime] Transaction failed for session/ref:",
+      monimeSessionId || orderReference,
       err
     );
-    throw err; // Let Monime retry
+    throw err;
   }
 }
 
 async function handlePaymentFailed(
-  monimeSessionId: string,
+  monimeSessionId: string | undefined,
+  orderReference: string | undefined,
   newStatus: "FAILED" | "CANCELLED" | "EXPIRED"
 ) {
-  const payment = await prisma.payment.findUnique({
-    where: { monimeSessionId },
-  });
+  let payment = monimeSessionId
+    ? await prisma.payment.findUnique({ where: { monimeSessionId } })
+    : null;
+
+  if (!payment && orderReference) {
+    payment = await prisma.payment.findFirst({
+      where: { orderId: orderReference },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
   if (!payment || payment.status === "PAID") return;
 
-  // Atomic update to ensure we don't overwrite a PAID status
-  // and handle concurrent webhooks
   const updateResult = await prisma.payment.updateMany({
     where: { 
       id: payment.id,
@@ -248,7 +273,6 @@ async function handlePaymentFailed(
 
   await prisma.order.update({
     where: { id: payment.orderId },
-    // Update both paymentStatus and fulfillment status for cancellations/failures
     data: { 
       paymentStatus: newStatus,
       ...(newStatus === "CANCELLED" || newStatus === "EXPIRED" || newStatus === "FAILED" ? { status: "CANCELLED" } : {})
