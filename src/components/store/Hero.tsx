@@ -6,8 +6,7 @@ import { motion } from "motion/react";
 import { ParallaxImage } from "@/components/motion/ParallaxImage";
 import { Ornament } from "./Ornament";
 
-const HERO_IMAGE =
-  "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=1200&q=80";
+const HERO_IMAGE = "/creed-aventus-hero.jpg";
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
@@ -130,7 +129,7 @@ export function Hero() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={HERO_IMAGE}
-                  alt="A bottle of ScentSL fragrance against parchment"
+                  alt="Creed Aventus luxury fragrance bottle"
                   className="size-full object-cover"
                 />
               </ParallaxImage>

@@ -167,12 +167,32 @@ async function handlePaymentSuccess(
         },
       });
 
-      // 3. Decrement stock for each order item
+      // 3. Decrement stock for each order item with atomic stock guard
       for (const item of order.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } },
+        const stockResult = await tx.productVariant.updateMany({
+          where: {
+            id: item.variantId,
+            stock: { gte: item.quantity }, // Guard: stock must be >= item.quantity
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
         });
+
+        if (stockResult.count === 0) {
+          console.error(
+            `[Webhook/Monime] Stock guard triggered: Variant ${item.variantId} has insufficient stock for Order ${order.id}. Preventing negative stock!`
+          );
+          // Mark order as CANCELLED for fulfillment while preserving paymentStatus PAID for refund handling
+          await tx.order.update({
+            where: { id: order.id },
+            data: {
+              status: "CANCELLED",
+              paymentStatus: "PAID",
+            },
+          });
+          break;
+        }
       }
 
       // 4. Clear the customer's bag
