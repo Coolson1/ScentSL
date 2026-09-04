@@ -40,6 +40,7 @@ if (!NEXTAUTH_URL) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: { signIn: "/auth/signin" },
@@ -80,6 +81,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      let effectiveBaseUrl = baseUrl;
+      const isLocalhost =
+        baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
+
+      if (isLocalhost) {
+        const envUrl =
+          process.env.NEXT_PUBLIC_APP_URL ||
+          process.env.NEXTAUTH_URL ||
+          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
+        if (envUrl && !envUrl.includes("localhost")) {
+          effectiveBaseUrl = envUrl.startsWith("http")
+            ? envUrl
+            : `https://${envUrl}`;
+        }
+      }
+
+      effectiveBaseUrl = effectiveBaseUrl.replace(/\/+$/, "");
+
+      if (url.startsWith("/")) {
+        return `${effectiveBaseUrl}${url}`;
+      }
+      try {
+        if (new URL(url).origin === new URL(effectiveBaseUrl).origin) {
+          return url;
+        }
+      } catch {
+        // Ignored invalid URL string
+      }
+      return effectiveBaseUrl;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;

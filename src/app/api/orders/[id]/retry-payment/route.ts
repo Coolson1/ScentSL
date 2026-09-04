@@ -5,7 +5,7 @@ import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { randomUUID } from "node:crypto";
 
 function getBaseUrl(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
   if (appUrl) {
     if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
       return `https://${appUrl}`;

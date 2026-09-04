@@ -19,7 +19,7 @@ const checkoutSchema = z.object({
 });
 
 function getBaseUrl(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
   if (appUrl) {
     // Ensure protocol is present — users often set just the domain
     if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
