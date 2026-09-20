@@ -10,6 +10,7 @@ export function ProductFilters({ categories }: { categories: Category[] }) {
   const params = useSearchParams();
 
   const activeCategory = params.get("category") ?? "";
+  const activeGender = params.get("gender")?.toUpperCase() ?? "";
   const [minPrice, setMinPrice] = useState(params.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
 
@@ -41,7 +42,48 @@ export function ProductFilters({ categories }: { categories: Category[] }) {
     <aside className="space-y-10 text-sm">
       <div>
         <h3 className="mb-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-brand-gold">
-          Chapter
+          Gender
+          <span className="inline-block h-px flex-1 bg-ink/15" />
+        </h3>
+        <ul className="space-y-1">
+          <li>
+            <FilterButton
+              active={!activeGender}
+              onClick={() => setParam({ gender: undefined })}
+            >
+              All genders
+            </FilterButton>
+          </li>
+          <li>
+            <FilterButton
+              active={activeGender === "MEN"}
+              onClick={() => setParam({ gender: "MEN" })}
+            >
+              Men
+            </FilterButton>
+          </li>
+          <li>
+            <FilterButton
+              active={activeGender === "WOMEN"}
+              onClick={() => setParam({ gender: "WOMEN" })}
+            >
+              Women
+            </FilterButton>
+          </li>
+          <li>
+            <FilterButton
+              active={activeGender === "UNISEX"}
+              onClick={() => setParam({ gender: "UNISEX" })}
+            >
+              Unisex
+            </FilterButton>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 className="mb-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-brand-gold">
+          Category
           <span className="inline-block h-px flex-1 bg-ink/15" />
         </h3>
         <ul className="space-y-1">
@@ -50,7 +92,7 @@ export function ProductFilters({ categories }: { categories: Category[] }) {
               active={!activeCategory}
               onClick={() => setParam({ category: undefined })}
             >
-              All fragrances
+              All categories
             </FilterButton>
           </li>
           {categories.map((category) => (

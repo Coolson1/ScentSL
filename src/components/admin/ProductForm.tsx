@@ -33,6 +33,7 @@ const formSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers, hyphens only"),
   categoryId: z.string().min(1, "Category is required"),
   vendorId: z.string().optional().nullable(),
+  gender: z.enum(["MEN", "WOMEN", "UNISEX"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),
@@ -62,6 +63,7 @@ export type ProductDefaults = {
   slug: string;
   categoryId: string;
   vendorId?: string | null;
+  gender?: "MEN" | "WOMEN" | "UNISEX";
   description: string;
   images: string[];
   isFeatured: boolean;
@@ -81,6 +83,7 @@ const EMPTY_DEFAULTS: ProductDefaults = {
   slug: "",
   categoryId: "",
   vendorId: "",
+  gender: "UNISEX",
   description: "",
   images: [],
   isFeatured: false,
@@ -110,6 +113,7 @@ export function ProductForm({
       slug: defaults.slug,
       categoryId: defaults.categoryId,
       vendorId: defaults.vendorId ?? "",
+      gender: defaults.gender ?? "UNISEX",
       description: defaults.description,
       images: defaults.images,
       isFeatured: defaults.isFeatured,
@@ -140,6 +144,7 @@ export function ProductForm({
       slug: values.slug,
       categoryId: values.categoryId,
       vendorId: values.vendorId || null,
+      gender: values.gender,
       description: values.description,
       images: values.images,
       isFeatured: values.isFeatured,
@@ -216,11 +221,11 @@ export function ProductForm({
               <Label htmlFor="slug">Slug</Label>
               <Input
                 id="slug"
-                {...form.register("slug", {
-                  onChange: () => {
-                    slugTouched.current = true;
-                  },
-                })}
+                {...form.register("slug")}
+                onChange={(e) => {
+                  slugTouched.current = true;
+                  form.register("slug").onChange(e);
+                }}
               />
               {form.formState.errors.slug && (
                 <p className="mt-1 text-xs text-destructive">
@@ -230,7 +235,7 @@ export function ProductForm({
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             <div>
               <Label htmlFor="categoryId">Category</Label>
               <Controller
@@ -256,6 +261,37 @@ export function ProductForm({
               {form.formState.errors.categoryId && (
                 <p className="mt-1 text-xs text-destructive">
                   {form.formState.errors.categoryId.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="gender">Gender</Label>
+              <Controller
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="gender">
+                      <SelectValue placeholder="Select gender">
+                        {field.value === "MEN"
+                          ? "Men"
+                          : field.value === "WOMEN"
+                            ? "Women"
+                            : "Unisex"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MEN">Men</SelectItem>
+                      <SelectItem value="WOMEN">Women</SelectItem>
+                      <SelectItem value="UNISEX">Unisex</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.gender && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.gender.message}
                 </p>
               )}
             </div>

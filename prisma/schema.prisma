@@ -45,6 +45,12 @@ enum VendorStatus {
   INACTIVE
 }
 
+enum Gender {
+  MEN
+  WOMEN
+  UNISEX
+}
+
 // ─── Auth (NextAuth v5 Prisma Adapter tables) ─────────────
 
 model User {
@@ -148,6 +154,7 @@ model Product {
   images        String[]
   isFeatured    Boolean          @default(false)
   isPopular     Boolean          @default(false)
+  gender        Gender           @default(UNISEX)
   isActive      Boolean          @default(true)
   createdAt     DateTime         @default(now())
   category      Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -161,6 +168,7 @@ model Product {
   @@index([vendorId])
   @@index([isActive, isFeatured])
   @@index([isActive, isPopular])
+  @@index([isActive, gender])
   @@index([isActive, createdAt])
 }
 

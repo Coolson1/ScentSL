@@ -12,11 +12,38 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const defaultUrl = process.env.NEXT_PUBLIC_APP_URL || "https://scentsl.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(defaultUrl),
   title: "ScentSL — Luxury Fragrance, Freetown",
   description:
     "Hand-blended fragrances inspired by Sierra Leone's heritage — an archive of scent for the discerning.",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "ScentSL — Luxury Fragrance, Freetown",
+    description:
+      "Hand-blended fragrances inspired by Sierra Leone's heritage — an archive of scent for the discerning.",
+    url: defaultUrl,
+    siteName: "ScentSL",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "ScentSL — Luxury Fragrance",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ScentSL — Luxury Fragrance, Freetown",
+    description:
+      "Hand-blended fragrances inspired by Sierra Leone's heritage — an archive of scent for the discerning.",
+    images: ["/opengraph-image"],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

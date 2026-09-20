@@ -65,7 +65,9 @@ export default async function ProductsPage({
             <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
               {activeCategory
                 ? `Chapter · ${activeCategory.name}`
-                : "The Collection · all chapters"}
+                : params.gender
+                  ? `Collection · ${params.gender === "MEN" ? "Men's Fragrances" : params.gender === "WOMEN" ? "Women's Fragrances" : "Unisex Fragrances"}`
+                  : "The Collection · all chapters"}
             </p>
           </Reveal>
           <Reveal delay={0.08}>
@@ -74,6 +76,15 @@ export default async function ProductsPage({
                 <>
                   {activeCategory.name}{" "}
                   <em className="italic text-brand-gold">— a chapter</em>
+                </>
+              ) : params.gender ? (
+                <>
+                  {params.gender === "MEN"
+                    ? "Men's Fragrances"
+                    : params.gender === "WOMEN"
+                      ? "Women's Fragrances"
+                      : "Unisex Fragrances"}{" "}
+                  <em className="italic text-brand-gold">— collection</em>
                 </>
               ) : (
                 <>

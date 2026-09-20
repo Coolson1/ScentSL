@@ -57,6 +57,7 @@ export async function POST(req: Request) {
       images: data.images,
       isFeatured: data.isFeatured,
       isPopular: data.isPopular,
+      gender: data.gender,
       isActive: data.isActive,
       variants: {
         create: data.variants.map((v) => ({

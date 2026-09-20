@@ -20,6 +20,7 @@ export const productInputSchema = z.object({
   images: z.array(z.string().url()).max(5, "Up to 5 images"),
   isFeatured: z.boolean(),
   isPopular: z.boolean().default(false),
+  gender: z.enum(["MEN", "WOMEN", "UNISEX"]).default("UNISEX"),
   isActive: z.boolean(),
   variants: z.array(variantInputSchema).min(1, "At least one variant is required"),
 });

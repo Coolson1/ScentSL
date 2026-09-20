@@ -8,13 +8,14 @@ import { EditorialQuote } from "@/components/store/EditorialQuote";
 import { CategoryShowcase } from "@/components/store/CategoryShowcase";
 import { EditorialSplit } from "@/components/store/EditorialSplit";
 import { Newsletter } from "@/components/store/Newsletter";
+import { ShopByGender } from "@/components/store/ShopByGender";
 import { Reveal } from "@/components/motion/Reveal";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 async function loadHomepageData() {
-  const [featured, popular, categories] = await withRetry(() =>
+  const [featured, popular, categories, menProduct, womenProduct, unisexProduct] = await withRetry(() =>
     Promise.all([
       prisma.product.findMany({
         where: { isFeatured: true, isActive: true },
@@ -38,13 +39,34 @@ async function loadHomepageData() {
         where: { isFeatured: true },
         orderBy: { name: "asc" },
       }),
+      prisma.product.findFirst({
+        where: { gender: "MEN", isActive: true },
+        select: { images: true },
+      }),
+      prisma.product.findFirst({
+        where: { gender: "WOMEN", isActive: true },
+        select: { images: true },
+      }),
+      prisma.product.findFirst({
+        where: { gender: "UNISEX", isActive: true },
+        select: { images: true },
+      }),
     ]),
   );
-  return { featured, popular, categories };
+  return {
+    featured,
+    popular,
+    categories,
+    genderImages: {
+      men: menProduct?.images[0] ?? null,
+      women: womenProduct?.images[0] ?? null,
+      unisex: unisexProduct?.images[0] ?? null,
+    },
+  };
 }
 
 export default async function HomePage() {
-  const { featured, popular, categories } = await loadHomepageData();
+  const { featured, popular, categories, genderImages } = await loadHomepageData();
 
   return (
     <>
@@ -107,6 +129,8 @@ export default async function HomePage() {
           />
         </div>
       </section>
+
+      <ShopByGender images={genderImages} />
 
       <EditorialQuote />
 

@@ -1,9 +1,11 @@
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma, Gender } from "@/generated/prisma/client";
 
 export type ProductSort = "newest" | "price_asc" | "price_desc";
+export type ProductGender = Gender;
 
 export type ProductSearchParams = {
   category?: string;
+  gender?: ProductGender;
   minPrice?: number;
   maxPrice?: number;
   sort: ProductSort;
@@ -16,6 +18,15 @@ function parseNumber(input: string | null): number | undefined {
   if (!input) return undefined;
   const n = Number(input);
   return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+function parseGender(input: string | null): ProductGender | undefined {
+  if (!input) return undefined;
+  const upper = input.toUpperCase();
+  if (upper === "MEN" || upper === "WOMEN" || upper === "UNISEX") {
+    return upper as ProductGender;
+  }
+  return undefined;
 }
 
 function parseSort(input: string | null): ProductSort {
@@ -42,6 +53,7 @@ export function parseProductSearchParams(
   const pageRaw = parseNumber(get("page"));
   return {
     category: get("category") ?? undefined,
+    gender: parseGender(get("gender")),
     minPrice: parseNumber(get("minPrice")),
     maxPrice: parseNumber(get("maxPrice")),
     sort: parseSort(get("sort")),
@@ -63,6 +75,7 @@ export function buildProductWhere(
   return {
     isActive: true,
     ...(params.category && { category: { slug: params.category } }),
+    ...(params.gender && { gender: params.gender }),
     ...(variantPriceFilter && {
       variants: { some: { price: variantPriceFilter } },
     }),

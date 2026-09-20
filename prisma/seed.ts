@@ -49,17 +49,18 @@ type SeedProduct = {
   categorySlug: string;
   images: string[];
   isFeatured?: boolean;
+  gender?: "MEN" | "WOMEN" | "UNISEX";
   variants: SeedVariant[];
 };
 
 const categories: { name: string; slug: string; image: string }[] = [
-  { name: "Oud", slug: "oud", image: IMG.u5 },
-  { name: "Floral", slug: "floral", image: IMG.chanelNo5 },
-  { name: "Woody", slug: "woody", image: IMG.u3 },
-  { name: "Citrus & Fresh", slug: "citrus-fresh", image: IMG.adpColonia },
-  { name: "Oriental & Amber", slug: "oriental-amber", image: IMG.shalimar },
-  { name: "Gourmand", slug: "gourmand", image: IMG.u11 },
-  { name: "Musk", slug: "musk", image: IMG.u9 },
+  { name: "Oud", slug: "oud", image: "https://images.unsplash.com/photo-1615634260167-c8cdede054de?auto=format&fit=crop&w=900&q=80" },
+  { name: "Floral", slug: "floral", image: "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=900&q=80" },
+  { name: "Woody", slug: "woody", image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=900&q=80" },
+  { name: "Citrus & Fresh", slug: "citrus-fresh", image: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=900&q=80" },
+  { name: "Oriental & Amber", slug: "oriental-amber", image: "https://images.unsplash.com/photo-1610461888750-10bfc601b874?auto=format&fit=crop&w=900&q=80" },
+  { name: "Gourmand", slug: "gourmand", image: "https://images.unsplash.com/photo-1503236823255-94609f598e71?auto=format&fit=crop&w=900&q=80" },
+  { name: "Musk", slug: "musk", image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?auto=format&fit=crop&w=900&q=80" },
 ];
 
 const products: SeedProduct[] = [
@@ -70,7 +71,7 @@ const products: SeedProduct[] = [
     description: "A luxurious unisex gourmand fragrance featuring cinnamon, nutmeg, praline, dates and vanilla.",
     categorySlug: "gourmand",
     images: [IMG.u11, IMG.u6],
-    isFeatured: true,
+    gender: "UNISEX",
     variants: [
       { size: "100ml", price: 35000, stock: 25, sku: "LAT-KHAM-100" },
     ],
@@ -81,7 +82,7 @@ const products: SeedProduct[] = [
     description: "A creamy tropical blend of orchid, heliotrope, gourmand notes and soft musk.",
     categorySlug: "gourmand",
     images: [IMG.u6, IMG.u17],
-    isFeatured: true,
+    gender: "WOMEN",
     variants: [
       { size: "100ml", price: 32000, stock: 20, sku: "LAT-YARA-100" },
     ],
@@ -92,7 +93,7 @@ const products: SeedProduct[] = [
     description: "A captivating evening fragrance with bergamot, lavender, cinnamon, apple and amberwood.",
     categorySlug: "oriental-amber",
     images: [IMG.u8, IMG.u15],
-    isFeatured: true,
+    gender: "MEN",
     variants: [
       { size: "100ml", price: 34000, stock: 30, sku: "AFN-9PM-100" },
     ],
@@ -103,7 +104,7 @@ const products: SeedProduct[] = [
     description: "A bold citrus-woody fragrance with lemon, blackcurrant, apple, birch, rose and musk.",
     categorySlug: "woody",
     images: [IMG.u3, IMG.u18],
-    isFeatured: true,
+    gender: "MEN",
     variants: [
       { size: "105ml", price: 38000, stock: 22, sku: "ARM-CDNIM-105" },
     ],
@@ -114,7 +115,7 @@ const products: SeedProduct[] = [
     description: "A dark spicy fragrance with black pepper, pineapple, tobacco, coffee, patchouli and vanilla.",
     categorySlug: "oriental-amber",
     images: [IMG.u15, IMG.u8],
-    isFeatured: true,
+    gender: "MEN",
     variants: [
       { size: "100ml", price: 33000, stock: 18, sku: "LAT-ASAD-100" },
     ],
@@ -125,6 +126,7 @@ const products: SeedProduct[] = [
     description: "An oriental aromatic blend of apple, ginger, bergamot, lavender, sage and tonka bean.",
     categorySlug: "citrus-fresh",
     images: [IMG.u19, IMG.u11],
+    gender: "MEN",
     variants: [
       { size: "100ml", price: 31000, stock: 15, sku: "LAT-FAKHAR-100" },
     ],
@@ -135,7 +137,7 @@ const products: SeedProduct[] = [
     description: "Lattafa Bade'e Al Oud - an intense woody fragrance with lavender, saffron, nutmeg and natural oud wood.",
     categorySlug: "oud",
     images: [IMG.u5, IMG.u14],
-    isFeatured: true,
+    gender: "UNISEX",
     variants: [
       { size: "100ml", price: 39000, stock: 16, sku: "LAT-OFG-100" },
     ],
@@ -506,11 +508,15 @@ async function main() {
   // ── Categories ─────────────────────────────────────────
   const categoryBySlug = new Map<string, { id: string }>();
   for (const c of categories) {
-    const row = await prisma.category.upsert({
-      where: { slug: c.slug },
-      update: { name: c.name, image: c.image },
-      create: { name: c.name, slug: c.slug, image: c.image },
-    });
+    const existing = await prisma.category.findUnique({ where: { slug: c.slug } });
+    const row = existing
+      ? await prisma.category.update({
+          where: { slug: c.slug },
+          data: { name: c.name, image: existing.image || c.image },
+        })
+      : await prisma.category.create({
+          data: { name: c.name, slug: c.slug, image: c.image },
+        });
     categoryBySlug.set(c.slug, row);
   }
 
@@ -609,30 +615,6 @@ async function main() {
     return code === 0 ? vendorA.id : code === 1 ? vendorB.id : vendorC.id;
   }
 
-  // ── Sample product (original) ──────────────────────────
-  const oudCat = categoryBySlug.get("oud")!;
-  await prisma.product.upsert({
-    where: { slug: "golden-oud" },
-    update: { vendorId: vendorC.id },
-    create: {
-      name: "Golden Oud",
-      slug: "golden-oud",
-      description: "A rich, woody fragrance with notes of oud and amber.",
-      categoryId: oudCat.id,
-      vendorId: vendorC.id,
-      images: [],
-      isFeatured: true,
-      isActive: true,
-      variants: {
-        create: [
-          { size: "50ml", price: 25000, stock: 20 },
-          { size: "100ml", price: 45000, stock: 15 },
-          { size: "200ml", price: 80000, stock: 8 },
-        ],
-      },
-    },
-  });
-
   // ── Perfume catalog ────────────────────────────────────
   for (const p of products) {
     const category = categoryBySlug.get(p.categorySlug);
@@ -640,30 +622,36 @@ async function main() {
       throw new Error(`Unknown category slug "${p.categorySlug}" for product "${p.name}"`);
     }
     const targetVendorId = getVendorForSlug(p.slug);
+    const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
 
-    await prisma.product.upsert({
-      where: { slug: p.slug },
-      update: {
-        name: p.name,
-        description: p.description,
-        categoryId: category.id,
-        vendorId: targetVendorId,
-        images: p.images,
-        isFeatured: p.isFeatured ?? false,
-        isActive: true,
-      },
-      create: {
-        name: p.name,
-        slug: p.slug,
-        description: p.description,
-        categoryId: category.id,
-        vendorId: targetVendorId,
-        images: p.images,
-        isFeatured: p.isFeatured ?? false,
-        isActive: true,
-        variants: { create: p.variants },
-      },
-    });
+    if (existing) {
+      await prisma.product.update({
+        where: { slug: p.slug },
+        data: {
+          name: p.name,
+          description: p.description,
+          categoryId: category.id,
+          vendorId: targetVendorId,
+          gender: p.gender ?? existing.gender ?? "UNISEX",
+          isActive: true,
+        },
+      });
+    } else {
+      await prisma.product.create({
+        data: {
+          name: p.name,
+          slug: p.slug,
+          description: p.description,
+          categoryId: category.id,
+          vendorId: targetVendorId,
+          images: p.images,
+          isFeatured: p.isFeatured ?? false,
+          gender: p.gender ?? "UNISEX",
+          isActive: true,
+          variants: { create: p.variants },
+        },
+      });
+    }
   }
 
   // ── Delivery zones ─────────────────────────────────────
