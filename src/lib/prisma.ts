@@ -25,22 +25,37 @@ export const prisma =
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  retries = 2,
-  delayMs = 1000,
+  retries = 3,
+  delayMs = 1200,
 ): Promise<T> {
+  let lastError: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       return await fn();
     } catch (error) {
+      lastError = error;
       const isLastAttempt = attempt === retries;
-      if (isLastAttempt) throw error;
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error !== null
+            ? (error as any).message || (error as any).type || JSON.stringify(error)
+            : String(error);
+
+      if (isLastAttempt) {
+        throw new Error(
+          `[Prisma] Database query failed after ${retries + 1} attempts: ${errorMessage}`,
+        );
+      }
 
       console.warn(
-        `[Prisma] Query failed (attempt ${attempt + 1}/${retries + 1}), retrying in ${delayMs}ms...`,
-        error instanceof Error ? error.message : error,
+        `[Prisma] Query attempt ${attempt + 1}/${retries + 1} failed (${errorMessage}). Retrying in ${delayMs}ms...`,
       );
       await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
-  throw new Error("withRetry: exhausted retries");
+  throw new Error(
+    `[Prisma] Query failed: ${lastError instanceof Error ? lastError.message : String(lastError)}`,
+  );
 }

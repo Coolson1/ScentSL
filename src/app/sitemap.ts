@@ -1,16 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma, withRetry } from "@/lib/prisma";
 
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_APP_URL ||
-  "https://scentsl.com"
-).replace(/\/+$/, "");
-
-// Ensure production domain is used for Google Search Console indexing
-const DOMAIN = BASE_URL.includes("localhost") || BASE_URL.includes("vercel.app")
-  ? "https://scentsl.com"
-  : BASE_URL;
+const DOMAIN = "https://www.scentsl.com";
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
@@ -63,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 2. Fetch active public products and categories safely with retry logic
+  // 2. Safely fetch active public products and categories with fallback
   try {
     const [products, categories] = await withRetry(() =>
       Promise.all([
@@ -97,8 +88,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [...staticRoutes, ...categoryRoutes, ...productRoutes];
   } catch (error) {
-    console.error("[Sitemap] Failed to fetch dynamic routes:", error);
-    // Fallback gracefully to static routes if database lookup fails during build
+    console.error("[Sitemap] Dynamic route fetch failed, returning static fallback:", error);
+    // Never crash or 404 — return static public routes if DB lookup fails
     return staticRoutes;
   }
 }
