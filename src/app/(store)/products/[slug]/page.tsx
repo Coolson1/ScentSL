@@ -214,6 +214,10 @@ export default async function ProductDetailPage({
             <NoteRow label="Heart" notes={pyramid.heart} delay={0.26} accent />
             <NoteRow label="Base" notes={pyramid.base} delay={0.36} />
           </div>
+
+          <p className="mt-12 text-center font-serif text-xs italic text-ink/70">
+            Note: Fragrance notes and longevity descriptions represent artistic olfactory compositions. Individual scent perception and longevity vary depending on skin chemistry and environment.
+          </p>
         </div>
       </section>
 

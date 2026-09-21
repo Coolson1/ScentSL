@@ -32,16 +32,17 @@ export function Newsletter() {
           </p>
         </Reveal>
         <Reveal delay={0.26} className="mx-auto mt-10 max-w-md">
-          <form className="flex items-end gap-3 border-b border-ink/30 pb-2 focus-within:border-brand-gold">
+          <form className="flex items-end gap-3 border-b border-ink/40 pb-2 focus-within:border-brand-gold">
             <input
               type="email"
               required
               placeholder="your-email@maison.com"
-              className="flex-1 bg-transparent text-base text-ink placeholder:text-ink/35 focus:outline-none"
+              aria-label="Email address to subscribe to ScentSL journal"
+              className="flex-1 bg-transparent text-base text-ink placeholder:text-ink/50 focus:outline-none"
             />
             <button
               type="submit"
-              className="group inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.32em] text-ink transition-colors hover:text-brand-gold"
+              className="group inline-flex items-center gap-2 pb-1 text-[11px] uppercase tracking-[0.32em] text-ink transition-colors hover:text-brand-gold focus-visible:outline-2 focus-visible:outline-brand-gold"
             >
               Subscribe
               <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">
@@ -49,8 +50,8 @@ export function Newsletter() {
               </span>
             </button>
           </form>
-          <p className="mt-3 text-left text-[10px] uppercase tracking-[0.28em] text-ink/45">
-            We never share your address.
+          <p className="mt-3 text-left text-[10px] uppercase tracking-[0.24em] text-ink/75">
+            Zero spam. Unsubscribe at any time with one click or by contacting hello@scentsl.com.
           </p>
         </Reveal>
       </div>

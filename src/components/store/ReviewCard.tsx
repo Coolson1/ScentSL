@@ -16,10 +16,15 @@ export function ReviewCard({ review }: Props) {
     <article className="border-b border-ink/12 py-8 last:border-b-0">
       <header className="flex flex-wrap items-baseline justify-between gap-4">
         <div>
-          <p className="font-display text-2xl font-light text-ink">
-            {review.user.name ?? "An anonymous reader"}
-          </p>
-          <p className="mt-1 text-[10px] uppercase tracking-[0.32em] text-ink/55">
+          <div className="flex items-center gap-2">
+            <p className="font-display text-2xl font-light text-ink">
+              {review.user.name ?? "An anonymous reader"}
+            </p>
+            <span className="rounded-full border border-brand-moss/30 bg-brand-moss/10 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.2em] font-medium text-brand-moss">
+              Verified Reader
+            </span>
+          </div>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.32em] text-ink/75">
             {format(review.createdAt, "d MMMM yyyy")}
           </p>
         </div>

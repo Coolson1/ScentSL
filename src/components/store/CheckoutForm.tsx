@@ -319,8 +319,11 @@ export function CheckoutForm({
           )}
         </button>
 
-        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.32em] text-ink/45">
-          — Payments via Monime —
+        <p className="mt-4 text-center text-[10px] uppercase tracking-[0.24em] text-ink/75">
+          ✓ No hidden fees or unexpected surcharges. Taxes and zone delivery are fully itemized above.
+        </p>
+        <p className="mt-2 text-center text-[10px] uppercase tracking-[0.32em] text-ink/65">
+          — Secure Payments via Monime —
         </p>
       </aside>
     </div>
