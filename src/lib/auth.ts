@@ -40,7 +40,9 @@ if (!NEXTAUTH_URL) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: NEXTAUTH_SECRET || process.env.AUTH_SECRET,
   trustHost: true,
+  useSecureCookies: process.env.NODE_ENV === "production",
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: { signIn: "/auth/signin" },
@@ -48,6 +50,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID!,
       clientSecret: GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+      checks: ["state"],
     }),
     Credentials({
       name: "credentials",
@@ -80,50 +84,46 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  cookies: {
+    pkceCodeVerifier: {
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-authjs.pkce.code_verifier"
+          : "authjs.pkce.code_verifier",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      let effectiveBaseUrl = baseUrl;
-      const isLocalhost =
-        baseUrl.includes("localhost") || baseUrl.includes("127.0.0.1");
-
-      if (isLocalhost) {
-        const envUrl =
-          process.env.NEXT_PUBLIC_APP_URL ||
-          process.env.NEXTAUTH_URL ||
-          (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-
-        if (envUrl && !envUrl.includes("localhost")) {
-          effectiveBaseUrl = envUrl.startsWith("http")
-            ? envUrl
-            : `https://${envUrl}`;
-        }
-      }
-
-      effectiveBaseUrl = effectiveBaseUrl.replace(/\/+$/, "");
-
+      const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
       if (url.startsWith("/")) {
-        return `${effectiveBaseUrl}${url}`;
+        return `${cleanBaseUrl}${url}`;
       }
       try {
-        if (new URL(url).origin === new URL(effectiveBaseUrl).origin) {
+        if (new URL(url).origin === new URL(cleanBaseUrl).origin) {
           return url;
         }
       } catch {
         // Ignored invalid URL string
       }
-      return effectiveBaseUrl;
+      return cleanBaseUrl;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
-        token.role = user.role;
+        token.role = (user as any).role ?? "CUSTOMER";
       }
       return token;
     },
     async session({ session, token }) {
       if (token?.id) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role;
+        session.user.role = ((token.role as Role) ?? "CUSTOMER");
       }
       return session;
     },
