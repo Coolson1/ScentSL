@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             <img
               src={heroImage}
               alt={product.name}
-              className="size-full object-contain p-2.5 sm:p-4 transition-transform duration-700 ease-out group-hover/card:scale-105"
+              className="size-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105"
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-b from-parchment-deep to-parchment">

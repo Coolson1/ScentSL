@@ -171,7 +171,7 @@ function NavbarSearchInner() {
 
       {/* Mobile Search Overlay Bar */}
       {isMobileOpen && (
-        <div className="absolute top-12 right-0 z-50 w-[calc(100vw-1.5rem)] max-w-sm rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
+        <div className="fixed inset-x-3 top-16 sm:top-20 z-50 mx-auto max-w-md rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-2xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <SearchIcon className="size-4 text-ink/50 shrink-0" />
             <input
@@ -200,6 +200,17 @@ function NavbarSearchInner() {
               className="rounded-full bg-ink px-3 py-1 text-[10px] uppercase tracking-widest text-parchment hover:bg-brand-gold hover:text-ink shrink-0"
             >
               Go
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileOpen(false);
+                setIsOpen(false);
+              }}
+              className="ml-1 rounded-full p-1 text-xs text-ink/50 hover:text-ink shrink-0"
+              aria-label="Close search"
+            >
+              ✕
             </button>
           </form>
 
