@@ -70,7 +70,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
+      <Hero products={featured} />
 
       <NotesMarquee />
 

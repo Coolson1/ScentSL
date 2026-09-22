@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-const connectionString = "postgresql://neondb_owner:npg_IlZr0i4dVgCE@ep-silent-art-ay7tqj24-pooler.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require";
+const connectionString = process.env.DATABASE_URL_POOLED || process.env.DATABASE_URL!;
 
 async function main() {
   const adapter = new PrismaNeon({ connectionString });

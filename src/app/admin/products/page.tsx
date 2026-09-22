@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
+import { ToggleFeaturedButton } from "@/components/admin/ToggleFeaturedButton";
 
 type SearchParams = Promise<{ q?: string }>;
 
@@ -106,7 +107,7 @@ export default async function AdminProductsPage({
                   <TableCell>{p.category.name}</TableCell>
                   <TableCell>{p._count.variants}</TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {p.isActive ? (
                         <Badge className="bg-brand-gold/15 text-brand-gold hover:bg-brand-gold/20">
                           Active
@@ -114,11 +115,11 @@ export default async function AdminProductsPage({
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
-                      {p.isFeatured && (
-                        <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50/50">
-                          Featured
-                        </Badge>
-                      )}
+                      <ToggleFeaturedButton
+                        productId={p.id}
+                        productName={p.name}
+                        isFeatured={p.isFeatured}
+                      />
                       {p.isPopular && (
                         <Badge variant="outline" className="border-purple-500/30 text-purple-600 bg-purple-50/50">
                           Popular
