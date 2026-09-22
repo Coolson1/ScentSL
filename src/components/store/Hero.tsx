@@ -112,7 +112,7 @@ export function Hero({ products = [] }: { products?: HeroProductData[] }) {
 
       <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 items-end gap-8 px-4 pb-16 pt-6 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:pb-28 lg:pt-16">
         {/* LEFT — editorial copy & product info */}
-        <div className="relative z-10 lg:col-span-7">
+        <div className="relative z-10 order-2 lg:order-1 lg:col-span-7">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentProduct.slug + "-meta"}
@@ -209,7 +209,7 @@ export function Hero({ products = [] }: { products?: HeroProductData[] }) {
         </div>
 
         {/* RIGHT — arched perfume image hero bottle */}
-        <div className="relative z-10 lg:col-span-5">
+        <div className="relative z-10 order-1 lg:order-2 lg:col-span-5">
           <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] sm:max-w-[420px]">
             {/* Arched dome frame */}
             <div
