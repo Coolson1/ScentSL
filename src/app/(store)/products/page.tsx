@@ -63,16 +63,23 @@ export default async function ProductsPage({
         <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12">
           <Reveal>
             <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-              {activeCategory
-                ? `Chapter · ${activeCategory.name}`
-                : params.gender
-                  ? `Collection · ${params.gender === "MEN" ? "Men's Fragrances" : params.gender === "WOMEN" ? "Women's Fragrances" : "Unisex Fragrances"}`
-                  : "The Collection · all chapters"}
+              {params.search
+                ? `Search · "${params.search}"`
+                : activeCategory
+                  ? `Chapter · ${activeCategory.name}`
+                  : params.gender
+                    ? `Collection · ${params.gender === "MEN" ? "Men's Fragrances" : params.gender === "WOMEN" ? "Women's Fragrances" : "Unisex Fragrances"}`
+                    : "The Collection · all chapters"}
             </p>
           </Reveal>
           <Reveal delay={0.08}>
             <h1 className="mt-5 font-display text-[clamp(3rem,7vw,5.6rem)] font-light leading-[0.92] tracking-[-0.015em] text-ink">
-              {activeCategory ? (
+              {params.search ? (
+                <>
+                  Results for{" "}
+                  <em className="italic text-brand-gold">&ldquo;{params.search}&rdquo;</em>
+                </>
+              ) : activeCategory ? (
                 <>
                   {activeCategory.name}{" "}
                   <em className="italic text-brand-gold">— a chapter</em>

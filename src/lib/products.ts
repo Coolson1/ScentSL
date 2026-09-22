@@ -4,6 +4,7 @@ export type ProductSort = "newest" | "price_asc" | "price_desc";
 export type ProductGender = Gender;
 
 export type ProductSearchParams = {
+  search?: string;
   category?: string;
   gender?: ProductGender;
   minPrice?: number;
@@ -51,7 +52,9 @@ export function parseProductSearchParams(
   };
 
   const pageRaw = parseNumber(get("page"));
+  const rawSearch = get("search") || get("q");
   return {
+    search: rawSearch?.trim() || undefined,
     category: get("category") ?? undefined,
     gender: parseGender(get("gender")),
     minPrice: parseNumber(get("minPrice")),
@@ -74,6 +77,13 @@ export function buildProductWhere(
 
   return {
     isActive: true,
+    ...(params.search && {
+      OR: [
+        { name: { contains: params.search, mode: "insensitive" } },
+        { description: { contains: params.search, mode: "insensitive" } },
+        { category: { name: { contains: params.search, mode: "insensitive" } } },
+      ],
+    }),
     ...(params.category && { category: { slug: params.category } }),
     ...(params.gender && { gender: params.gender }),
     ...(variantPriceFilter && {

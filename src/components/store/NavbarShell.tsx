@@ -3,16 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-
 import Image from "next/image";
+import { NavbarSearch } from "./NavbarSearch";
 
 const NAV_LINKS = [
   { href: "/products", label: "Collection" },
-  { href: "/products?category=oud", label: "Oud" },
-  { href: "/products?category=floral", label: "Floral" },
-  { href: "/products?category=amber", label: "Amber" },
 ];
-
 
 export function NavbarShell({
   cartCount,
@@ -40,13 +36,13 @@ export function NavbarShell({
       }`}
     >
       <div
-        className={`mx-auto flex max-w-[1400px] items-center justify-between gap-4 sm:gap-6 px-4 sm:px-5 md:px-8 lg:px-12 transition-[height] duration-300 ${
+        className={`mx-auto flex max-w-[1400px] items-center justify-between gap-3 sm:gap-6 px-4 sm:px-5 md:px-8 lg:px-12 transition-[height] duration-300 ${
           scrolled ? "h-12 sm:h-14" : "h-16 sm:h-20"
         }`}
       >
         {/* left nav */}
         <nav className="hidden flex-1 items-center gap-9 md:flex">
-          {NAV_LINKS.slice(0, 2).map((link) => (
+          {NAV_LINKS.map((link) => (
             <NavLink key={link.href} {...link} />
           ))}
         </nav>
@@ -83,12 +79,8 @@ export function NavbarShell({
         </Link>
 
         {/* right cluster */}
-        <div className="flex flex-1 items-center justify-end gap-5 md:gap-7">
-          <nav className="hidden md:flex md:items-center md:gap-7">
-            {NAV_LINKS.slice(2).map((link) => (
-              <NavLink key={link.href} {...link} />
-            ))}
-          </nav>
+        <div className="flex flex-1 items-center justify-end gap-3 sm:gap-5 md:gap-6">
+          <NavbarSearch />
 
           {userSlot}
 
@@ -116,8 +108,8 @@ export function NavbarShell({
         </div>
       </div>
 
-      {/* mobile nav */}
-      <nav className="flex items-center justify-center gap-6 border-t border-ink/8 px-4 py-2.5 md:hidden">
+      {/* mobile nav bar */}
+      <nav className="flex items-center justify-between px-6 py-2 border-t border-ink/8 md:hidden">
         {NAV_LINKS.map((link) => (
           <NavLink key={link.href} {...link} compact />
         ))}
