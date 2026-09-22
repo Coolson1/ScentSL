@@ -32,8 +32,10 @@ function NavbarSearchFallback() {
           <input
             type="text"
             disabled
+            dir="ltr"
             placeholder="Search fragrances..."
-            className="w-full rounded-full border border-ink/20 bg-parchment-soft/80 py-1.5 pl-8 pr-7 text-xs text-ink placeholder:text-ink/45 shadow-xs"
+            className="w-full rounded-full border border-ink/20 bg-parchment-soft/80 py-1.5 pl-8 pr-7 text-left text-xs text-ink placeholder:text-left placeholder:text-ink/45 shadow-xs"
+            style={{ textAlign: "left" }}
           />
         </div>
       </div>
@@ -130,6 +132,7 @@ function NavbarSearchInner() {
           <SearchIcon className="pointer-events-none absolute left-3 size-3.5 text-ink/50" />
           <input
             type="text"
+            dir="ltr"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -140,7 +143,8 @@ function NavbarSearchInner() {
             }}
             placeholder="Search fragrances..."
             aria-label="Search fragrances"
-            className="w-full rounded-full border border-ink/20 bg-parchment-soft/80 py-1.5 pl-8 pr-7 text-xs text-ink placeholder:text-ink/45 focus:border-brand-gold focus:bg-parchment focus:outline-none focus:ring-1 focus:ring-brand-gold/50 shadow-xs"
+            className="w-full rounded-full border border-ink/20 bg-parchment-soft/80 py-1.5 pl-8 pr-7 text-left text-xs text-ink placeholder:text-left placeholder:text-ink/45 focus:border-brand-gold focus:bg-parchment focus:outline-none focus:ring-1 focus:ring-brand-gold/50 shadow-xs"
+            style={{ textAlign: "left" }}
           />
           {query && (
             <button
@@ -177,6 +181,7 @@ function NavbarSearchInner() {
             <input
               type="text"
               autoFocus
+              dir="ltr"
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -184,7 +189,8 @@ function NavbarSearchInner() {
               }}
               placeholder="Search fragrances..."
               aria-label="Search fragrances"
-              className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink/45 focus:outline-none min-w-0"
+              className="flex-1 bg-transparent text-left text-sm text-ink placeholder:text-left placeholder:text-ink/45 focus:outline-none min-w-0"
+              style={{ textAlign: "left" }}
             />
             {query && (
               <button

@@ -1,26 +1,106 @@
 "use client";
 
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
-import { ParallaxImage } from "@/components/motion/ParallaxImage";
+import { formatSLE } from "@/lib/utils";
 import { Ornament } from "./Ornament";
 
-const HERO_IMAGE = "/creed-aventus-hero.jpg";
+export type HeroProductData = {
+  id?: string;
+  slug: string;
+  name: string;
+  description: string;
+  images: string[];
+  category?: { name: string } | null;
+  variants: { price: number; stock: number }[];
+};
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
-export function Hero() {
+const FALLBACK_HERO_SLIDES: HeroProductData[] = [
+  {
+    slug: "creed-royal-oud",
+    name: "Creed Royal Oud",
+    description: "A regal blend of Sicilian lemon, pink peppercorn, Indian oud, Tuscan cedar and Sahara cypress.",
+    images: ["/creed-aventus-hero.jpg"],
+    category: { name: "Oud" },
+    variants: [{ price: 78000, stock: 10 }],
+  },
+];
+
+function lowestPrice(variants: { price: number }[]) {
+  if (!variants || variants.length === 0) return null;
+  return variants.reduce((min, v) => (v.price < min ? v.price : min), variants[0].price);
+}
+
+export function Hero({ products = [] }: { products?: HeroProductData[] }) {
+  const slides = products.length > 0 ? products : FALLBACK_HERO_SLIDES;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  const nextSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
+
+  const prevSlide = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  // Auto-rotating timer every 5 seconds (5000ms)
+  useEffect(() => {
+    if (isPaused || slides.length <= 1) return;
+    const timer = setInterval(() => {
+      nextSlide();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isPaused, slides.length, nextSlide]);
+
+  // Ensure currentIndex is in bounds if products change dynamically
+  useEffect(() => {
+    if (currentIndex >= slides.length) {
+      setCurrentIndex(0);
+    }
+  }, [slides.length, currentIndex]);
+
+  const currentProduct = slides[currentIndex] || slides[0];
+  const price = lowestPrice(currentProduct.variants);
+  const heroImage = currentProduct.images[0] || "/creed-aventus-hero.jpg";
+
+  // Touch gesture support for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextSlide();
+      else prevSlide();
+    }
+    touchStartX.current = null;
+  };
+
   return (
-    <section className="relative isolate overflow-hidden bg-parchment pt-10 sm:pt-16 lg:pt-20">
+    <section
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="relative isolate overflow-hidden bg-parchment pt-10 sm:pt-16 lg:pt-20 select-none"
+    >
       {/* edition meta — top corners */}
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-5 text-[10px] uppercase tracking-[0.4em] text-ink/55 sm:px-8 lg:px-12">
-        <span>Vol. I · No. 01</span>
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-2 px-4 sm:px-8 lg:px-12 text-[9px] sm:text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.38em] text-ink/55 overflow-hidden">
+        <span className="shrink-0">Vol. I · No. {String(currentIndex + 1).padStart(2, "0")}</span>
         <span className="hidden sm:inline">— Une archive olfactive —</span>
-        <span>MMXXVI · Freetown</span>
+        <span className="shrink-0 truncate">MMXXVI · Freetown</span>
       </div>
 
-      {/* botanical bleed */}
+      {/* botanical bleed ornaments */}
       <Ornament
         variant="botanical"
         className="pointer-events-none absolute -left-16 top-32 hidden h-[480px] w-[480px] text-brand-gold/30 lg:block"
@@ -30,149 +110,153 @@ export function Hero() {
         className="pointer-events-none absolute bottom-12 right-[6%] hidden h-[260px] w-[200px] text-ink/12 lg:block"
       />
 
-      <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 items-end gap-10 px-5 pb-20 pt-12 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:pb-28 lg:pt-20">
-        {/* LEFT — editorial copy */}
+      <div className="relative mx-auto grid max-w-[1400px] grid-cols-1 items-end gap-8 px-4 pb-16 pt-6 sm:px-8 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:pb-28 lg:pt-16">
+        {/* LEFT — editorial copy & product info */}
         <div className="relative z-10 lg:col-span-7">
-          <motion.p
-            initial={{ opacity: 1, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: easeOut }}
-            className="text-[10px] uppercase tracking-[0.5em] text-brand-gold"
-          >
-            Maison ScentSL · Édition d&apos;Hiver
-          </motion.p>
-
-          <h1 className="mt-7 font-display text-[clamp(3.2rem,8.5vw,7.5rem)] font-light leading-[0.92] tracking-[-0.015em] text-ink">
-            <HeroLine delay={0.1}>The scent</HeroLine>
-            <HeroLine delay={0.22}>
-              of <em className="font-extralight italic text-brand-gold">a season</em>
-            </HeroLine>
-            <HeroLine delay={0.34}>kept on paper.</HeroLine>
-          </h1>
-
-          <motion.p
-            initial={{ opacity: 1, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: easeOut, delay: 0.5 }}
-            className="mt-10 max-w-md font-serif text-lg leading-relaxed text-ink/75"
-          >
-            Each fragrance is composed slowly, by hand, in our atelier in
-            Freetown — small batches, raw materials sourced near home, formulas
-            archived in the back room like letters.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 1, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: easeOut, delay: 0.62 }}
-            className="mt-10 flex flex-wrap items-center gap-7"
-          >
-            <Link
-              href="/products"
-              className="group inline-flex items-center gap-3 rounded-full bg-ink px-8 py-4 text-[11px] uppercase tracking-[0.32em] text-parchment transition-all duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] hover:bg-brand-gold hover:text-ink"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentProduct.slug + "-meta"}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5, ease: easeOut }}
             >
-              Explore the archive
+              <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.25em] sm:tracking-[0.45em] text-brand-gold font-medium truncate">
+                Maison ScentSL · Édition {currentProduct.category?.name ?? "Collection"}
+              </p>
+
+              <h1 className="mt-4 sm:mt-7 font-display text-[clamp(2.2rem,6.8vw,6rem)] font-light leading-[0.95] tracking-[-0.015em] text-ink break-words max-w-full">
+                {currentProduct.name}
+              </h1>
+
+              <p className="mt-4 sm:mt-8 max-w-lg font-serif text-sm sm:text-lg leading-relaxed text-ink/75 line-clamp-3">
+                {currentProduct.description}
+              </p>
+
+              {price !== null && (
+                <p className="mt-3 sm:mt-4 font-display text-lg sm:text-2xl font-light text-brand-gold">
+                  {formatSLE(price)}
+                </p>
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          <div className="mt-6 sm:mt-10 flex flex-wrap items-center gap-4 sm:gap-7">
+            <Link
+              href={`/products/${currentProduct.slug}`}
+              className="group inline-flex items-center gap-2.5 rounded-full bg-ink px-6 py-3 sm:px-8 sm:py-4 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.32em] text-parchment transition-all duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] hover:bg-brand-gold hover:text-ink shadow-sm"
+            >
+              Discover fragrance
               <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">
                 →
               </span>
             </Link>
+
             <Link
-              href="/products?category=oud"
-              className="group relative pb-2 text-[11px] uppercase tracking-[0.32em] text-ink/80 transition-colors hover:text-ink"
+              href="/products"
+              className="group relative pb-1 text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.32em] text-ink/80 transition-colors hover:text-ink"
             >
-              The Oud chapter
+              Explore archive
               <span className="absolute bottom-0 left-0 h-px w-full origin-right scale-x-100 bg-ink/30 transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] group-hover:origin-left group-hover:bg-brand-gold" />
             </Link>
-          </motion.div>
+          </div>
 
-          {/* lower meta */}
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.9 }}
-            className="mt-16 grid max-w-md grid-cols-3 gap-6 border-t border-ink/12 pt-6 text-[10px] uppercase tracking-[0.28em] text-ink/55"
-          >
-            <div>
-              <p className="text-brand-gold">Top</p>
-              <p className="mt-1">Bergamot · Cardamom</p>
+          {/* Carousel controls & pagination indicators */}
+          {slides.length > 1 && (
+            <div className="mt-8 sm:mt-12 flex flex-wrap items-center gap-4 sm:gap-6">
+              {/* Previous / Next buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={prevSlide}
+                  aria-label="Previous perfume"
+                  className="flex size-9 sm:size-10 items-center justify-center rounded-full border border-ink/20 text-ink/75 transition-colors hover:border-brand-gold hover:bg-brand-gold/10 hover:text-ink active:scale-95 text-xs sm:text-base"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={nextSlide}
+                  aria-label="Next perfume"
+                  className="flex size-9 sm:size-10 items-center justify-center rounded-full border border-ink/20 text-ink/75 transition-colors hover:border-brand-gold hover:bg-brand-gold/10 hover:text-ink active:scale-95 text-xs sm:text-base"
+                >
+                  →
+                </button>
+              </div>
+
+              {/* Dots / Slide indicators */}
+              <div className="flex items-center gap-2">
+                {slides.map((slide, idx) => (
+                  <button
+                    key={slide.slug + "-dot"}
+                    type="button"
+                    onClick={() => setCurrentIndex(idx)}
+                    aria-label={`Go to slide ${idx + 1}: ${slide.name}`}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      idx === currentIndex
+                        ? "w-6 sm:w-8 bg-brand-gold"
+                        : "w-2 bg-ink/25 hover:bg-ink/50"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-ink/45">
+                {currentIndex + 1} / {slides.length}
+              </span>
             </div>
-            <div>
-              <p className="text-brand-gold">Heart</p>
-              <p className="mt-1">Rose · Jasmine</p>
-            </div>
-            <div>
-              <p className="text-brand-gold">Base</p>
-              <p className="mt-1">Oud · Vetiver</p>
-            </div>
-          </motion.div>
+          )}
         </div>
 
-        {/* RIGHT — arched image */}
-        <motion.div
-          initial={{ opacity: 1, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.1, ease: easeOut, delay: 0.2 }}
-          className="relative z-10 lg:col-span-5"
-        >
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-[440px]">
-            {/* arch frame */}
+        {/* RIGHT — arched perfume image hero bottle */}
+        <div className="relative z-10 lg:col-span-5">
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-[340px] sm:max-w-[420px]">
+            {/* Arched dome frame */}
             <div
-              className="absolute inset-0 overflow-hidden bg-parchment-deep shadow-[0_30px_60px_-30px_rgba(26,24,20,0.35)]"
+              className="relative overflow-hidden bg-parchment-deep shadow-[0_30px_60px_-30px_rgba(26,24,20,0.35)] border border-ink/10 aspect-[3/4] w-full"
               style={{
                 borderTopLeftRadius: "100% 60%",
                 borderTopRightRadius: "100% 60%",
-                borderBottomLeftRadius: "8px",
-                borderBottomRightRadius: "8px",
+                borderBottomLeftRadius: "12px",
+                borderBottomRightRadius: "12px",
               }}
             >
-              <ParallaxImage amount={6} className="size-full">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={HERO_IMAGE}
-                  alt="Creed Aventus luxury fragrance bottle"
-                  className="size-full object-cover"
-                />
-              </ParallaxImage>
+              {/* Clean Overlay Badge (never intersects image) */}
+              <div className="pointer-events-none absolute right-2.5 top-2.5 sm:right-4 sm:top-4 z-20 flex max-w-[calc(100%-20px)] items-center gap-1 sm:gap-1.5 rounded-full border border-ink/15 bg-parchment/90 px-2.5 py-1 text-[8px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.22em] text-ink/90 shadow-xs backdrop-blur-md">
+                <span className="font-display italic font-semibold text-brand-gold shrink-0">
+                  N°.{String(currentIndex + 1).padStart(2, "0")}
+                </span>
+                <span className="text-ink/30 shrink-0">·</span>
+                <span className="truncate">{currentProduct.category?.name ?? "Atelier"}</span>
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentProduct.slug + "-img"}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.02 }}
+                  transition={{ duration: 0.7, ease: easeOut }}
+                  className="size-full"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroImage}
+                    alt={currentProduct.name}
+                    className="size-full object-cover"
+                  />
+                </motion.div>
+              </AnimatePresence>
             </div>
 
-            {/* corner caption */}
-            <div className="absolute -right-3 -top-6 hidden flex-col items-end gap-1 text-right text-[10px] uppercase tracking-[0.32em] text-ink/70 sm:flex">
-              <span className="font-display text-3xl italic normal-case tracking-normal text-brand-gold">
-                N°.01
-              </span>
-              <span>Sierra · Bloom</span>
-              <span className="text-ink/45">EDP 50 ml</span>
-            </div>
-
-            {/* serial */}
-            <div className="absolute -bottom-6 left-0 flex items-center gap-3 text-[10px] uppercase tracking-[0.32em] text-ink/55">
-              <span className="inline-block h-px w-8 bg-ink/30" />
-              Formula · 00012-S
+            {/* Serial code info below image */}
+            <div className="mt-2.5 flex items-center justify-between gap-2 text-[8px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.28em] text-ink/55 w-full overflow-hidden">
+              <span className="truncate max-w-[160px] sm:max-w-[220px] font-medium text-ink/80">{currentProduct.name}</span>
+              <span className="shrink-0 text-brand-gold">Edition Archive</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
-  );
-}
-
-function HeroLine({
-  children,
-  delay,
-}: {
-  children: React.ReactNode;
-  delay: number;
-}) {
-  return (
-    <span className="block overflow-hidden">
-      <motion.span
-        initial={{ y: "110%" }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.95, ease: easeOut, delay }}
-        className="inline-block"
-      >
-        {children}
-      </motion.span>
-    </span>
   );
 }

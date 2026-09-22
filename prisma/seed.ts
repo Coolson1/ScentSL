@@ -6,7 +6,9 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import bcrypt from "bcryptjs";
 
-const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaNeon({
+  connectionString: process.env.DATABASE_URL_POOLED || process.env.DATABASE_URL!,
+});
 const prisma = new PrismaClient({ adapter });
 
 // Verified image URLs (all checked HTTP 200 at seed authoring time).
