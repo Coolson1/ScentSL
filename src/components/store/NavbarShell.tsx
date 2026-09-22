@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { NavbarSearch } from "./NavbarSearch";
+import { NotificationInbox } from "../notifications/NotificationInbox";
 
 const NAV_LINKS = [
   { href: "/products", label: "Collection" },
@@ -81,6 +82,7 @@ export function NavbarShell({
         {/* right cluster */}
         <div className="flex flex-1 items-center justify-end gap-3 sm:gap-5 md:gap-6">
           <NavbarSearch />
+          <NotificationInbox />
 
           {userSlot}
 

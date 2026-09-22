@@ -3,6 +3,12 @@ import { z } from "zod";
 import { auth, requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus } from "@/generated/prisma/enums";
+import {
+  notifyOrderDispatched,
+  notifyOutForDelivery,
+  notifyOrderDelivered,
+  notifyOrderCancelled,
+} from "@/lib/notifications/service";
 
 const STATUSES = Object.values(OrderStatus) as [OrderStatus, ...OrderStatus[]];
 
@@ -45,6 +51,19 @@ export async function PATCH(
     where: { id },
     data: updateData,
   });
+
+  // Trigger push notifications if status actually changed
+  if (existing.status !== newStatus) {
+    if (newStatus === "SHIPPED") {
+      await notifyOrderDispatched(order).catch(console.error);
+    } else if (newStatus === "PROCESSING") {
+      await notifyOutForDelivery(order).catch(console.error);
+    } else if (newStatus === "DELIVERED") {
+      await notifyOrderDelivered(order).catch(console.error);
+    } else if (newStatus === "CANCELLED") {
+      await notifyOrderCancelled(order).catch(console.error);
+    }
+  }
 
   return NextResponse.json({ order });
 }

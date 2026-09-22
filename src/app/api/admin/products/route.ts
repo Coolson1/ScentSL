@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth, requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { productInputSchema } from "@/lib/validators/product";
+import { notifyNewFragrance } from "@/lib/notifications/service";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -70,6 +71,12 @@ export async function POST(req: Request) {
     },
     include: { variants: true, category: true, vendor: true },
   });
+
+  if (product.isActive) {
+    await notifyNewFragrance(product).catch((err) =>
+      console.error("[Admin/Products] Failed to send new fragrance push notification:", err)
+    );
+  }
 
   return NextResponse.json({ product }, { status: 201 });
 }

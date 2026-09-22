@@ -7,6 +7,7 @@ import { CART_SESSION_COOKIE, getCartWithItems } from "@/lib/cart";
 import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyOrderConfirmed } from "@/lib/notifications/service";
 
 const checkoutSchema = z.object({
   recipientName: z.string().min(2),
@@ -282,6 +283,11 @@ export async function POST(req: Request) {
         data: { monimeSessionId: monimeSession.id },
       }),
     ]);
+
+    // Trigger order confirmation push notification
+    await notifyOrderConfirmed(order).catch((err) =>
+      console.error("[Checkout] Failed to send order confirmation push notification:", err)
+    );
 
     return NextResponse.json({
       success: true,

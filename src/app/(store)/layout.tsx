@@ -1,6 +1,7 @@
 import { Footer } from "@/components/store/Footer";
 import { Navbar } from "@/components/store/Navbar";
 import { CookieConsent } from "@/components/store/CookieConsent";
+import { NotificationOptIn } from "@/components/notifications/NotificationOptIn";
 import { mergeGuestCart } from "@/lib/actions/merge-cart";
 
 export default async function StoreLayout({
@@ -30,6 +31,7 @@ export default async function StoreLayout({
       </main>
       <Footer />
       <CookieConsent />
+      <NotificationOptIn />
     </div>
   );
 }

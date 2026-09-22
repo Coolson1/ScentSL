@@ -63,6 +63,12 @@ export function UserMenu({ email, name, role }: Props) {
           Orders
         </DropdownMenuItem>
         <DropdownMenuItem
+          render={<Link href="/account/notifications" />}
+          className="text-[11px] uppercase tracking-[0.28em] text-ink/80 focus:bg-parchment-deep focus:text-ink"
+        >
+          Notifications
+        </DropdownMenuItem>
+        <DropdownMenuItem
           render={<Link href="/wishlist" />}
           className="text-[11px] uppercase tracking-[0.28em] text-ink/80 focus:bg-parchment-deep focus:text-ink"
         >
@@ -82,6 +88,12 @@ export function UserMenu({ email, name, role }: Props) {
               className="text-[11px] uppercase tracking-[0.28em] text-brand-gold focus:bg-parchment-deep focus:text-brand-gold"
             >
               Admin panel
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={<Link href="/admin/notifications" />}
+              className="text-[11px] uppercase tracking-[0.28em] text-brand-gold focus:bg-parchment-deep focus:text-brand-gold"
+            >
+              Push Broadcasts
             </DropdownMenuItem>
           </>
         )}
