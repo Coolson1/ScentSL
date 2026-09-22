@@ -76,7 +76,7 @@ export default async function HomePage() {
 
       {/* Chapter I · Selected */}
       <section className="bg-parchment py-16 sm:py-24 lg:py-32">
-        <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1400px] px-3.5 sm:px-8 lg:px-12">
           <Reveal className="mb-16 flex flex-col items-baseline justify-between gap-6 sm:flex-row">
             <div>
               <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
@@ -104,7 +104,7 @@ export default async function HomePage() {
 
       {/* Chapter II · Most Popular */}
       <section className="bg-parchment-light border-t border-ink/5 py-16 sm:py-24 lg:py-32">
-        <div className="mx-auto max-w-[1400px] px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1400px] px-3.5 sm:px-8 lg:px-12">
           <Reveal className="mb-16 flex flex-col items-baseline justify-between gap-6 sm:flex-row">
             <div>
               <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">

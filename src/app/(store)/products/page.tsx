@@ -117,7 +117,7 @@ export default async function ProductsPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1400px] px-5 pt-16 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1400px] px-3.5 pt-10 sm:px-8 sm:pt-16 lg:px-12">
         <div className="grid gap-12 lg:grid-cols-[240px_1fr] lg:gap-16">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <ProductFilters categories={categories} />

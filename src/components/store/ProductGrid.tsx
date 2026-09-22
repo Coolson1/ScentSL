@@ -25,14 +25,14 @@ export function ProductGrid({
 
   const gridCols =
     columns === 2
-      ? "grid-cols-1 sm:grid-cols-2"
+      ? "grid-cols-2"
       : columns === 3
-        ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+        ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3"
+        : "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 
   return (
     <RevealStagger
-      className={`grid ${gridCols} gap-x-6 gap-y-14 sm:gap-x-8 sm:gap-y-16`}
+      className={`grid ${gridCols} gap-x-3 gap-y-7 sm:gap-x-6 sm:gap-y-12 md:gap-x-8 md:gap-y-16`}
       stagger={0.06}
     >
       {products.map((product) => (
@@ -43,3 +43,4 @@ export function ProductGrid({
     </RevealStagger>
   );
 }
+
