@@ -171,7 +171,7 @@ function NavbarSearchInner() {
 
       {/* Mobile Search Overlay Bar */}
       {isMobileOpen && (
-        <div className="absolute top-12 right-0 left-auto z-50 w-[88vw] max-w-sm rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
+        <div className="fixed inset-x-3 top-16 sm:top-20 z-50 mx-auto max-w-md rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-2xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <SearchIcon className="size-4 text-ink/50 shrink-0" />
             <input
@@ -184,30 +184,109 @@ function NavbarSearchInner() {
               }}
               placeholder="Search fragrances..."
               aria-label="Search fragrances"
-              className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink/45 focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink/45 focus:outline-none min-w-0"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
-                className="text-xs uppercase text-ink/50"
+                className="text-[10px] uppercase text-ink/50 hover:text-ink shrink-0"
               >
                 Clear
               </button>
             )}
             <button
               type="submit"
-              className="rounded-full bg-ink px-3 py-1 text-[10px] uppercase tracking-widest text-parchment hover:bg-brand-gold hover:text-ink"
+              className="rounded-full bg-ink px-3 py-1 text-[10px] uppercase tracking-widest text-parchment hover:bg-brand-gold hover:text-ink shrink-0"
             >
               Go
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileOpen(false);
+                setIsOpen(false);
+              }}
+              className="ml-1 rounded-full p-1 text-xs text-ink/50 hover:text-ink shrink-0"
+              aria-label="Close search"
+            >
+              ✕
+            </button>
           </form>
+
+          {/* Mobile Autocomplete Panel inside Overlay */}
+          {isOpen && query.trim().length >= 2 && (
+            <div className="mt-2.5 max-h-72 overflow-y-auto rounded-xl border border-ink/15 bg-parchment-soft/95 p-2 shadow-lg backdrop-blur-md">
+              {isLoading ? (
+                <div className="py-4 text-center text-xs italic text-ink/60">
+                  Searching atelier...
+                </div>
+              ) : results.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="px-2 py-1 text-[9px] uppercase tracking-[0.28em] text-brand-gold font-medium">
+                    Fragrances found ({results.length})
+                  </p>
+                  {results.map((product) => {
+                    const price = lowestPrice(product.variants);
+                    const image = product.images[0];
+                    return (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => handleSelectProduct(product.slug)}
+                        className="flex w-full items-center gap-2.5 rounded-lg p-1.5 text-left transition-colors hover:bg-brand-gold/15 focus:outline-none"
+                      >
+                        <div className="relative size-8 shrink-0 overflow-hidden rounded-md border border-ink/10 bg-parchment-deep">
+                          {image ? (
+                            <Image
+                              src={image}
+                              alt={product.name}
+                              fill
+                              className="object-contain p-0.5"
+                            />
+                          ) : (
+                            <div className="flex size-full items-center justify-center font-display text-xs text-ink/40">
+                              {product.name.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate font-display text-xs font-light text-ink">
+                            {product.name}
+                          </p>
+                          <p className="text-[8px] uppercase tracking-[0.18em] text-ink/55 truncate">
+                            {product.category?.name ?? "Maison"}
+                          </p>
+                        </div>
+                        <div className="font-display text-xs tabular-nums text-ink/85 shrink-0">
+                          {price ? formatSLE(price) : ""}
+                        </div>
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="mt-2 block w-full rounded-md border border-ink/15 py-1.5 text-center text-[10px] uppercase tracking-[0.24em] text-ink transition-colors hover:border-brand-gold hover:text-brand-gold"
+                  >
+                    View all results →
+                  </button>
+                </div>
+              ) : (
+                <div className="py-3 text-center">
+                  <p className="font-serif text-xs italic text-ink/70">
+                    No fragrances found matching &ldquo;{query}&rdquo;
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Autocomplete Dropdown Panel */}
-      {isOpen && query.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 md:left-auto md:right-0 top-full mt-2 w-full md:w-80 rounded-xl border border-ink/15 bg-parchment-soft p-2.5 shadow-xl backdrop-blur-md z-50 max-h-80 overflow-y-auto">
+      {/* Desktop Autocomplete Dropdown Panel */}
+      {isOpen && query.trim().length >= 2 && !isMobileOpen && (
+        <div className="absolute left-0 right-0 md:left-auto md:right-0 top-full mt-2 w-full md:w-80 rounded-xl border border-ink/15 bg-parchment-soft p-2.5 shadow-xl backdrop-blur-md z-50 max-h-80 overflow-y-auto hidden md:block">
           {isLoading ? (
             <div className="py-4 text-center text-xs italic text-ink/60">
               Searching atelier...
@@ -233,7 +312,7 @@ function NavbarSearchInner() {
                           src={image}
                           alt={product.name}
                           fill
-                          className="object-cover"
+                          className="object-contain p-1"
                         />
                       ) : (
                         <div className="flex size-full items-center justify-center font-display text-xs text-ink/40">
