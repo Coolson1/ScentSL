@@ -76,8 +76,8 @@ function SignInForm() {
       await mergeGuestCart().catch(() => undefined);
       window.location.href = callbackUrl;
     } catch (err) {
-      console.error("[SignIn] Sign in process error:", err);
-      setSubmitError("Sign-in failed. Please check your credentials or network connection.");
+      console.error("[SignIn] Sign in error:", err);
+      setSubmitError("Invalid email or password.");
       setIsSubmitting(false);
     }
   }
