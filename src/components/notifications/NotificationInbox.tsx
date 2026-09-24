@@ -24,7 +24,10 @@ export function NotificationInbox() {
 
   const fetchInbox = async () => {
     try {
-      const res = await fetch("/api/notifications/inbox?limit=15");
+      const res = await fetch("/api/notifications/inbox?limit=15", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -38,6 +41,9 @@ export function NotificationInbox() {
   useEffect(() => {
     fetchInbox();
 
+    // Poll for unread notification updates every 30 seconds
+    const interval = setInterval(fetchInbox, 30000);
+
     // Click outside handler
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -45,7 +51,10 @@ export function NotificationInbox() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const handleToggle = () => {

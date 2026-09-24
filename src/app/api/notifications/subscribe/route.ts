@@ -3,6 +3,8 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const subscribeSchema = z.object({
   endpoint: z.string().url(),
   p256dh: z.string().min(1),
