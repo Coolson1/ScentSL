@@ -6,6 +6,16 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import type { Role } from "@/generated/prisma/enums";
 import { prisma } from "./prisma";
+import { getAppBaseUrl } from "./url";
+
+const resolvedBaseUrl = getAppBaseUrl();
+
+if (!process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL.includes("localhost") && !resolvedBaseUrl.includes("localhost"))) {
+  process.env.NEXTAUTH_URL = resolvedBaseUrl;
+}
+if (!process.env.AUTH_URL || (process.env.AUTH_URL.includes("localhost") && !resolvedBaseUrl.includes("localhost"))) {
+  process.env.AUTH_URL = resolvedBaseUrl;
+}
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -100,18 +110,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
       if (url.startsWith("/")) {
-        return `${cleanBaseUrl}${url}`;
+        return url;
       }
       try {
-        if (new URL(url).origin === new URL(cleanBaseUrl).origin) {
+        const appBase = getAppBaseUrl();
+        const targetUrl = new URL(url);
+        if ((targetUrl.hostname === "localhost" || targetUrl.hostname === "127.0.0.1") && !appBase.includes("localhost")) {
+          return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+        }
+        const currentOrigin = new URL(appBase).origin;
+        if (targetUrl.origin === currentOrigin || targetUrl.origin === new URL(baseUrl).origin) {
           return url;
         }
       } catch {
         // Ignored invalid URL string
       }
-      return cleanBaseUrl;
+      return "/";
     },
     async jwt({ token, user }) {
       if (user) {

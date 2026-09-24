@@ -29,7 +29,19 @@ export default function SignInPage() {
 
 function SignInForm() {
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") ?? "/account";
+  const rawCallbackUrl = params.get("callbackUrl") ?? "/account";
+  let callbackUrl = rawCallbackUrl;
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+    if (callbackUrl.includes("localhost") || callbackUrl.includes("127.0.0.1")) {
+      try {
+        const parsed = new URL(callbackUrl);
+        callbackUrl = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+      } catch {
+        callbackUrl = "/account";
+      }
+    }
+  }
+
   const urlError = params.get("error");
 
   const [submitError, setSubmitError] = useState<string | null>(
