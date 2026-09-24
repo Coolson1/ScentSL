@@ -67,9 +67,13 @@ model User {
   orders        Order[]
   wishlistItems WishlistItem[]
   reviews       Review[]
-  addresses     Address[]
-  accounts      Account[]
-  sessions      Session[]
+  addresses              Address[]
+  accounts               Account[]
+  sessions               Session[]
+  pushSubscriptions      PushSubscription[]
+  notificationPreference UserNotificationPreference?
+  notificationLogs       NotificationLog[]
+  activityTracker        UserActivityTracker?
 
   @@index([role])
 }
@@ -367,3 +371,70 @@ model Payment {
   @@index([orderId])
   @@index([status])
 }
+
+// ─── Web Push Notifications ───────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String?
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([endpoint])
+}
+
+model UserNotificationPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  marketing       Boolean  @default(true)
+  recommendations Boolean  @default(true)
+  cartReminders   Boolean  @default(true)
+  reEngagement    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NotificationLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  type            String
+  category        String   @default("TRANSACTIONAL")
+  title           String
+  message         String
+  url             String?
+  relatedEntityId String?
+  idempotencyKey  String?  @unique
+  isRead          Boolean  @default(false)
+  sentAt          DateTime @default(now())
+  deliveryStatus  String   @default("SENT")
+  createdAt       DateTime @default(now())
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([idempotencyKey])
+}
+
+model UserActivityTracker {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  lastVisitedAt          DateTime  @default(now())
+  lastCartReminderSentAt DateTime?
+  cartReminderCount      Int       @default(0)
+  lastReEngagementSentAt DateTime?
+  reEngagementCount      Int       @default(0)
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+

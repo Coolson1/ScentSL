@@ -15,6 +15,7 @@ import {
   Users,
   LogOut,
   Menu,
+  Bell,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -39,6 +40,7 @@ const NAV_LINKS: NavLink[] = [
   { label: "Inventory", href: "/admin/inventory", icon: Boxes },
   { label: "Coupons", href: "/admin/coupons", icon: Percent },
   { label: "Shipping Rates", href: "/admin/shipping-rates", icon: Truck },
+  { label: "Push Broadcasts", href: "/admin/notifications", icon: Bell },
   { label: "Users", href: "/admin/users", icon: Users, adminOnly: true },
 ];
 
@@ -46,7 +48,7 @@ function NavList({ role }: { role: Role }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex-1 space-y-1 px-3 py-4">
+    <nav className="flex-1 overflow-y-auto min-h-0 space-y-1 px-3 py-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {NAV_LINKS.map((link) => {
         if (link.adminOnly && role !== "ADMIN") return null;
         const isActive =

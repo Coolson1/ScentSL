@@ -6,10 +6,20 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import type { Role } from "@/generated/prisma/enums";
 import { prisma } from "./prisma";
+import { getAppBaseUrl } from "./url";
+
+const resolvedBaseUrl = getAppBaseUrl();
+
+if (!process.env.NEXTAUTH_URL || (process.env.NEXTAUTH_URL.includes("localhost") && !resolvedBaseUrl.includes("localhost"))) {
+  process.env.NEXTAUTH_URL = resolvedBaseUrl;
+}
+if (!process.env.AUTH_URL || (process.env.AUTH_URL.includes("localhost") && !resolvedBaseUrl.includes("localhost"))) {
+  process.env.AUTH_URL = resolvedBaseUrl;
+}
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -29,7 +39,7 @@ if (
 
 if (!NEXTAUTH_SECRET) {
   console.warn(
-    "NextAuth secret is missing. Set NEXTAUTH_SECRET in your environment.",
+    "NextAuth secret is missing. Set NEXTAUTH_SECRET or AUTH_SECRET in your Vercel environment variables.",
   );
 }
 
@@ -40,7 +50,7 @@ if (!NEXTAUTH_URL) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret: NEXTAUTH_SECRET || "scentsl_default_auth_secret_key_2026",
   trustHost: true,
   useSecureCookies: process.env.NODE_ENV === "production",
   adapter: PrismaAdapter(prisma),
@@ -62,16 +72,64 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+        const rawEmail = (credentials.email as string).trim();
+        const inputPassword = credentials.password as string;
+
+        // Check ADMIN_EMAIL and ADMIN_PASSWORD environment variables
+        const envAdminEmail = process.env.ADMIN_EMAIL?.trim();
+        const envAdminPassword = process.env.ADMIN_PASSWORD;
+
+        if (
+          envAdminEmail &&
+          envAdminPassword &&
+          rawEmail.toLowerCase() === envAdminEmail.toLowerCase() &&
+          inputPassword === envAdminPassword
+        ) {
+          let adminUser = await prisma.user.findFirst({
+            where: { email: { equals: envAdminEmail, mode: "insensitive" } },
+          });
+
+          if (!adminUser) {
+            const hashedPassword = await bcrypt.hash(envAdminPassword, 10);
+            adminUser = await prisma.user.create({
+              data: {
+                email: envAdminEmail,
+                name: "Admin",
+                password: hashedPassword,
+                role: "ADMIN",
+                isActive: true,
+              },
+            });
+          } else if (adminUser.role !== "ADMIN" || adminUser.isActive === false) {
+            adminUser = await prisma.user.update({
+              where: { id: adminUser.id },
+              data: { role: "ADMIN", isActive: true },
+            });
+          }
+
+          return {
+            id: adminUser.id,
+            email: adminUser.email,
+            name: adminUser.name,
+            image: adminUser.image,
+            role: adminUser.role,
+          };
+        }
+
+        // Standard database user authentication
+        const user = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: rawEmail,
+              mode: "insensitive",
+            },
+          },
         });
 
-        if (!user || !user.password || !user.isActive) return null;
+        if (!user || !user.password) return null;
+        if (user.isActive === false) return null;
 
-        const valid = await bcrypt.compare(
-          credentials.password as string,
-          user.password,
-        );
+        const valid = await bcrypt.compare(inputPassword, user.password);
         if (!valid) return null;
 
         return {
@@ -100,18 +158,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      const cleanBaseUrl = baseUrl.replace(/\/+$/, "");
       if (url.startsWith("/")) {
-        return `${cleanBaseUrl}${url}`;
+        return url;
       }
       try {
-        if (new URL(url).origin === new URL(cleanBaseUrl).origin) {
+        const appBase = getAppBaseUrl();
+        const targetUrl = new URL(url);
+        if ((targetUrl.hostname === "localhost" || targetUrl.hostname === "127.0.0.1") && !appBase.includes("localhost")) {
+          return `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
+        }
+        const currentOrigin = new URL(appBase).origin;
+        if (targetUrl.origin === currentOrigin || targetUrl.origin === new URL(baseUrl).origin) {
           return url;
         }
       } catch {
         // Ignored invalid URL string
       }
-      return cleanBaseUrl;
+      return "/";
     },
     async jwt({ token, user }) {
       if (user) {

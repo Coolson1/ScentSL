@@ -66,3 +66,63 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
+
+// ── Web Push Event Listeners ─────────────────────────────
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let payload = {
+    title: "ScentSL",
+    body: "You have a new notification from ScentSL.",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: "scentsl-notification",
+    data: { url: "/" },
+  };
+
+  try {
+    const json = event.data.json();
+    payload = { ...payload, ...json };
+  } catch (err) {
+    payload.body = event.data.text();
+  }
+
+  const options = {
+    body: payload.body,
+    icon: payload.icon || "/icons/icon-192.png",
+    badge: payload.badge || "/icons/icon-192.png",
+    tag: payload.tag || "scentsl-push",
+    data: payload.data || { url: "/" },
+    vibrate: [100, 50, 100],
+    actions: [
+      { action: "explore", title: "View Details" },
+      { action: "close", title: "Dismiss" },
+    ],
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  if (event.action === "close") return;
+
+  const targetUrl = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === targetUrl && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

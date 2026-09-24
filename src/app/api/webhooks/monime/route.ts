@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyWebhookSignature } from "@/lib/monime";
+import { notifyPaymentSuccessful, notifyPaymentFailed } from "@/lib/notifications/service";
 
 /**
  * POST /api/webhooks/monime
@@ -229,6 +230,11 @@ async function handlePaymentSuccess(
     console.log(
       `[Webhook/Monime] Order ${order.id} (${order.orderNumber}) marked PAID`
     );
+
+    // Trigger push notification for successful payment
+    await notifyPaymentSuccessful(order).catch((err) =>
+      console.error("[Webhook/Monime] Failed to send payment push notification:", err)
+    );
   } catch (err) {
     console.error(
       "[Webhook/Monime] Transaction failed for session/ref:",
@@ -282,4 +288,15 @@ async function handlePaymentFailed(
   console.log(
     `[Webhook/Monime] Order ${payment.orderId} payment marked ${newStatus}`
   );
+
+  const failedOrder = await prisma.order.findUnique({
+    where: { id: payment.orderId },
+    select: { id: true, orderNumber: true, userId: true },
+  });
+
+  if (failedOrder) {
+    await notifyPaymentFailed(failedOrder).catch((err) =>
+      console.error("[Webhook/Monime] Failed to send payment failed push notification:", err)
+    );
+  }
 }

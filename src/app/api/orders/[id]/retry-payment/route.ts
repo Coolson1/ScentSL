@@ -3,22 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { randomUUID } from "node:crypto";
-
-function getBaseUrl(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
-  if (appUrl) {
-    if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
-      return `https://${appUrl}`;
-    }
-    return appUrl.replace(/\/+$/, "");
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return "http://localhost:3000";
-}
-
-const APP_URL = getBaseUrl();
+import { getAppBaseUrl } from "@/lib/url";
 
 /**
  * POST /api/orders/[id]/retry-payment
@@ -30,6 +15,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const APP_URL = getAppBaseUrl();
   const { id: orderId } = await params;
 
   try {

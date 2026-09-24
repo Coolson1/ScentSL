@@ -7,6 +7,8 @@ import { CART_SESSION_COOKIE, getCartWithItems } from "@/lib/cart";
 import { createCheckoutSession, MonimeLineItem } from "@/lib/monime";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyOrderConfirmed } from "@/lib/notifications/service";
+import { getAppBaseUrl } from "@/lib/url";
 
 const checkoutSchema = z.object({
   recipientName: z.string().min(2),
@@ -18,24 +20,8 @@ const checkoutSchema = z.object({
   couponCode: z.string().optional(),
 });
 
-function getBaseUrl(): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL;
-  if (appUrl) {
-    // Ensure protocol is present — users often set just the domain
-    if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
-      return `https://${appUrl}`;
-    }
-    return appUrl.replace(/\/+$/, "");
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return "http://localhost:3000";
-}
-
-const APP_URL = getBaseUrl();
-
 export async function POST(req: Request) {
+  const APP_URL = getAppBaseUrl();
   try {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
     const { success } = await rateLimit(`checkout-${ip}`, { limit: 15, intervalMs: 60_000 });
@@ -282,6 +268,11 @@ export async function POST(req: Request) {
         data: { monimeSessionId: monimeSession.id },
       }),
     ]);
+
+    // Trigger order confirmation push notification
+    await notifyOrderConfirmed(order).catch((err) =>
+      console.error("[Checkout] Failed to send order confirmation push notification:", err)
+    );
 
     return NextResponse.json({
       success: true,
