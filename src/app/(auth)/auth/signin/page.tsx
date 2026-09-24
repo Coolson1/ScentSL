@@ -61,19 +61,25 @@ function SignInForm() {
   async function onSubmit(values: SignInValues) {
     setSubmitError(null);
     setIsSubmitting(true);
-    const result = await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-    setIsSubmitting(false);
+    try {
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
 
-    if (!result || result.error) {
-      setSubmitError("Invalid email or password.");
-      return;
+      if (!result || result.error) {
+        setSubmitError("Invalid email or password.");
+        setIsSubmitting(false);
+        return;
+      }
+      await mergeGuestCart().catch(() => undefined);
+      window.location.href = callbackUrl;
+    } catch (err) {
+      console.error("[SignIn] Sign in process error:", err);
+      setSubmitError("Sign-in failed. Please check your credentials or network connection.");
+      setIsSubmitting(false);
     }
-    await mergeGuestCart().catch(() => undefined);
-    window.location.href = callbackUrl;
   }
 
   return (

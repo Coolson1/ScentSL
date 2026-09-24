@@ -19,7 +19,7 @@ if (!process.env.AUTH_URL || (process.env.AUTH_URL.includes("localhost") && !res
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -39,7 +39,7 @@ if (
 
 if (!NEXTAUTH_SECRET) {
   console.warn(
-    "NextAuth secret is missing. Set NEXTAUTH_SECRET in your environment.",
+    "NextAuth secret is missing. Set NEXTAUTH_SECRET or AUTH_SECRET in your Vercel environment variables.",
   );
 }
 
@@ -50,7 +50,7 @@ if (!NEXTAUTH_URL) {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret: NEXTAUTH_SECRET || "scentsl_default_auth_secret_key_2026",
   trustHost: true,
   useSecureCookies: process.env.NODE_ENV === "production",
   adapter: PrismaAdapter(prisma),

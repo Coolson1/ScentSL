@@ -12,11 +12,11 @@ const BRAND_PRIMARY_COLOR = "#C9A84C";
 
 function getMonimeHeaders(idempotencyKey?: string): HeadersInit {
   const apiKey = process.env.MONIME_API_KEY;
-  const spaceId = process.env.MONIME_WORKSPACE_ID;
+  const spaceId = process.env.MONIME_WORKSPACE_ID || process.env.MONIME_SPACE_ID;
 
   if (!apiKey || !spaceId) {
     throw new Error(
-      "MONIME_API_KEY and MONIME_WORKSPACE_ID must be set in environment variables"
+      "MONIME_API_KEY and MONIME_WORKSPACE_ID (or MONIME_SPACE_ID) must be set in environment variables"
     );
   }
 
@@ -77,14 +77,19 @@ export async function createCheckoutSession(
   // Use a unique idempotency key per attempt to avoid 409 conflicts on retries
   const idempotencyKey = `checkout-${params.orderId}-${crypto.randomUUID()}`;
 
-  // Validate that successUrl and cancelUrl are valid absolute URLs (not localhost)
-  if (params.successUrl?.includes("localhost") || params.cancelUrl?.includes("localhost")) {
-    console.error("[Monime] successUrl or cancelUrl contains localhost — set NEXT_PUBLIC_APP_URL to your production domain", {
+  // Monime requires publicly accessible URLs in live hosted environments (Production / Preview)
+  const isHostedEnv =
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production" ||
+    process.env.VERCEL_ENV === "preview";
+
+  if (isHostedEnv && (params.successUrl?.includes("localhost") || params.cancelUrl?.includes("localhost"))) {
+    console.error("[Monime] successUrl or cancelUrl contains localhost in hosted environment", {
       successUrl: params.successUrl,
       cancelUrl: params.cancelUrl,
     });
     throw new Error(
-      "Payment configuration error: NEXT_PUBLIC_APP_URL is not set to your production domain. Please contact support."
+      "Payment configuration error: APP_URL is pointing to localhost in a deployed environment."
     );
   }
 
