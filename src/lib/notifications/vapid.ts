@@ -62,13 +62,14 @@ export async function sendWebPush(
     const error = err as { statusCode?: number; endpoint?: string };
     // 404 Not Found or 410 Gone means the subscription is no longer valid
     if (error.statusCode === 404 || error.statusCode === 410) {
-      console.log(`[WebPush] Subscription expired (${error.statusCode}). Deleting subscription ${subscription.id}`);
+      console.log(`[WebPush] Subscription expired (${error.statusCode}). Deactivating subscription ${subscription.id}`);
       try {
-        await prisma.pushSubscription.delete({
+        await prisma.pushSubscription.update({
           where: { id: subscription.id },
+          data: { active: false },
         });
       } catch (dbErr) {
-        console.error("[WebPush] Failed to cleanup invalid subscription:", dbErr);
+        console.error("[WebPush] Failed to mark subscription inactive:", dbErr);
       }
     } else {
       console.error("[WebPush] Error sending push notification:", err);

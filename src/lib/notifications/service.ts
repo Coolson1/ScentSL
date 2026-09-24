@@ -77,7 +77,7 @@ export async function sendNotificationToUser({
 
     // 3. Find user active push subscriptions
     const subscriptions = await prisma.pushSubscription.findMany({
-      where: { userId },
+      where: { userId, active: true },
     });
 
     // 4. Log notification record
@@ -163,7 +163,9 @@ export async function sendNotificationBroadcast({
     }
 
     // Broadcast to ALL active push subscriptions in DB (registered users + guests)
-    const subscriptions = await prisma.pushSubscription.findMany();
+    const subscriptions = await prisma.pushSubscription.findMany({
+      where: { active: true },
+    });
     if (subscriptions.length === 0) {
       return { totalSent: 0 };
     }
@@ -483,7 +485,7 @@ export async function runReEngagementJob() {
 
 export async function runPersonalizedRecommendationsJob() {
   const usersWithSubs = await prisma.pushSubscription.findMany({
-    where: { userId: { not: null } },
+    where: { userId: { not: null }, active: true },
     select: { userId: true },
     distinct: ["userId"],
   });

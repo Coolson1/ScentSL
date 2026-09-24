@@ -35,7 +35,7 @@ export default function AdminNotificationsPage() {
       if (res.ok) {
         setResultMessage({
           type: "success",
-          text: `Notification successfully sent to ${data.count} active push subscription(s)! 🎉`,
+          text: `Notification successfully sent to ${data.count} active device(s)! 🎉`,
         });
         setTitle("");
         setMessage("");

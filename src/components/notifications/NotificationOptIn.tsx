@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { requestAndSubscribePush, trackUserVisit } from "@/lib/notifications/client";
+import { requestAndSubscribePush, syncPushSubscriptionWithServer, trackUserVisit } from "@/lib/notifications/client";
 
 export function NotificationOptIn() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -14,8 +14,13 @@ export function NotificationOptIn() {
 
     if (typeof window === "undefined" || !("Notification" in window)) return;
 
-    // Check if user has already granted permission or dismissed prompt
-    if (Notification.permission === "granted" || Notification.permission === "denied") {
+    // If permission is already granted, sync subscription with server to ensure active=true and associate user session
+    if (Notification.permission === "granted") {
+      syncPushSubscriptionWithServer();
+      return;
+    }
+
+    if (Notification.permission === "denied") {
       return;
     }
 

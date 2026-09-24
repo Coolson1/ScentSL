@@ -83,17 +83,27 @@ self.addEventListener("push", (event) => {
 
   try {
     const json = event.data.json();
-    payload = { ...payload, ...json };
+    payload = {
+      title: json.title || payload.title,
+      body: json.body || json.message || payload.body,
+      icon: json.icon || payload.icon,
+      badge: json.badge || payload.badge,
+      tag: json.tag || payload.tag,
+      data: {
+        url: json.url || json.data?.url || "/",
+        ...json.data,
+      },
+    };
   } catch (err) {
     payload.body = event.data.text();
   }
 
   const options = {
     body: payload.body,
-    icon: payload.icon || "/icons/icon-192.png",
-    badge: payload.badge || "/icons/icon-192.png",
-    tag: payload.tag || "scentsl-push",
-    data: payload.data || { url: "/" },
+    icon: payload.icon,
+    badge: payload.badge,
+    tag: payload.tag,
+    data: payload.data,
     vibrate: [100, 50, 100],
     actions: [
       { action: "explore", title: "View Details" },
