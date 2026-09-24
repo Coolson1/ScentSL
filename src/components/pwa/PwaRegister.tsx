@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export function PwaRegister() {
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
+      const registerSW = () => {
         navigator.serviceWorker
           .register("/sw.js")
           .then((registration) => {
@@ -14,7 +14,13 @@ export function PwaRegister() {
           .catch((err) => {
             console.error("ScentSL PWA ServiceWorker registration failed:", err);
           });
-      });
+      };
+
+      if (document.readyState === "complete") {
+        registerSW();
+      } else {
+        window.addEventListener("load", registerSW, { once: true });
+      }
     }
   }, []);
 
