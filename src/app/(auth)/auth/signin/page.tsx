@@ -63,7 +63,7 @@ function SignInForm() {
     setIsSubmitting(true);
     try {
       const result = await signIn("credentials", {
-        email: values.email,
+        email: values.email.trim(),
         password: values.password,
         redirect: false,
       });
@@ -209,23 +209,65 @@ const UnderlineField = ({
   label,
   error,
   className,
+  type,
   ...props
 }: FieldProps & { ref?: React.Ref<HTMLInputElement> }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+
   return (
-    <label className="flex flex-col gap-2">
+    <label className="flex flex-col gap-2 relative">
       <span className="text-[10px] uppercase tracking-[0.32em] text-ink/55">
         {label}
       </span>
-      <input
-        {...props}
-        className={`border-b border-ink/25 bg-transparent pb-2 font-display text-lg text-ink placeholder:text-ink/30 focus:border-brand-gold focus:outline-none ${className ?? ""}`}
-      />
+      <div className="relative flex items-center">
+        <input
+          {...props}
+          type={inputType}
+          className={`w-full border-b border-ink/25 bg-transparent pb-2 font-display text-lg text-ink placeholder:text-ink/30 focus:border-brand-gold focus:outline-none ${isPassword ? "pr-8" : ""} ${className ?? ""}`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-0 bottom-2 text-ink/50 hover:text-brand-gold transition-colors focus:outline-none p-1"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <EyeOffIcon className="size-4" />
+            ) : (
+              <EyeIcon className="size-4" />
+            )}
+          </button>
+        )}
+      </div>
       {error && (
         <span className="font-serif text-xs italic text-brand-rose">{error}</span>
       )}
     </label>
   );
 };
+
+function EyeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+      <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+      <line x1="2" y1="2" x2="22" y2="22" />
+    </svg>
+  );
+}
 
 function GoogleMark() {
   return (
