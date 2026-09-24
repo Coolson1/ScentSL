@@ -73,6 +73,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         const rawEmail = (credentials.email as string).trim();
+        const inputPassword = credentials.password as string;
+
+        // Check ADMIN_EMAIL and ADMIN_PASSWORD environment variables
+        const envAdminEmail = process.env.ADMIN_EMAIL?.trim();
+        const envAdminPassword = process.env.ADMIN_PASSWORD;
+
+        if (
+          envAdminEmail &&
+          envAdminPassword &&
+          rawEmail.toLowerCase() === envAdminEmail.toLowerCase() &&
+          inputPassword === envAdminPassword
+        ) {
+          let adminUser = await prisma.user.findFirst({
+            where: { email: { equals: envAdminEmail, mode: "insensitive" } },
+          });
+
+          if (!adminUser) {
+            const hashedPassword = await bcrypt.hash(envAdminPassword, 10);
+            adminUser = await prisma.user.create({
+              data: {
+                email: envAdminEmail,
+                name: "Admin",
+                password: hashedPassword,
+                role: "ADMIN",
+                isActive: true,
+              },
+            });
+          } else if (adminUser.role !== "ADMIN" || adminUser.isActive === false) {
+            adminUser = await prisma.user.update({
+              where: { id: adminUser.id },
+              data: { role: "ADMIN", isActive: true },
+            });
+          }
+
+          return {
+            id: adminUser.id,
+            email: adminUser.email,
+            name: adminUser.name,
+            image: adminUser.image,
+            role: adminUser.role,
+          };
+        }
+
+        // Standard database user authentication
         const user = await prisma.user.findFirst({
           where: {
             email: {
@@ -85,10 +129,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || !user.password) return null;
         if (user.isActive === false) return null;
 
-        const valid = await bcrypt.compare(
-          credentials.password as string,
-          user.password,
-        );
+        const valid = await bcrypt.compare(inputPassword, user.password);
         if (!valid) return null;
 
         return {
