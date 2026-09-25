@@ -28,9 +28,19 @@ export async function sendWebPush(
   subscription: { id: string; endpoint: string; p256dh: string; auth: string },
   payload: PushNotificationPayload
 ): Promise<boolean> {
-  if (!publicKey || !privateKey) {
-    console.warn("[WebPush] VAPID keys not configured. Skipping send.");
+  const currentPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || publicKey;
+  const currentPrivateKey = process.env.VAPID_PRIVATE_KEY || privateKey;
+  const currentSubject = process.env.VAPID_SUBJECT || subject || "mailto:support@scentsl.com";
+
+  if (!currentPublicKey || !currentPrivateKey) {
+    console.warn("[WebPush] VAPID keys not configured in environment. Skipping send.");
     return false;
+  }
+
+  try {
+    webpush.setVapidDetails(currentSubject, currentPublicKey, currentPrivateKey);
+  } catch (setErr) {
+    console.warn("[WebPush] setVapidDetails notice:", setErr);
   }
 
   const pushSubscription = {

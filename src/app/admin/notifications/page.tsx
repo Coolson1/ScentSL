@@ -33,10 +33,17 @@ export default function AdminNotificationsPage() {
 
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setResultMessage({
-          type: "success",
-          text: `Notification successfully sent to ${data.count} active device(s)! 🎉`,
-        });
+        if (data.count > 0) {
+          setResultMessage({
+            type: "success",
+            text: `Notification successfully sent to ${data.count} active device(s)! 🎉`,
+          });
+        } else {
+          setResultMessage({
+            type: "error",
+            text: "No active push subscriptions found in database. Make sure browser notifications are enabled on your device.",
+          });
+        }
         setTitle("");
         setMessage("");
       } else {
