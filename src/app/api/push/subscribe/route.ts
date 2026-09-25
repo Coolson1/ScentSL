@@ -52,10 +52,22 @@ export async function POST(req: Request) {
     const p256dh = keys?.p256dh || parsed.data.p256dh!;
     const authKey = keys?.auth || parsed.data.auth!;
 
+    // Verify if userId exists in User table to avoid foreign key constraint error
+    let validUserId: string | null = null;
+    if (userId) {
+      const userObj = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      }).catch(() => null);
+      if (userObj) {
+        validUserId = userObj.id;
+      }
+    }
+
     // Check if subscription with this endpoint already exists
     const existing = await prisma.pushSubscription.findUnique({
       where: { endpoint },
-    });
+    }).catch(() => null);
 
     let subscription;
 
@@ -69,8 +81,7 @@ export async function POST(req: Request) {
           auth: authKey,
           userAgent: userAgent || existing.userAgent,
           updatedAt: new Date(),
-          // If visitor is signed in now, associate their userId
-          ...(userId ? { userId } : {}),
+          ...(validUserId ? { userId: validUserId } : {}),
         },
       });
     } else {
@@ -80,7 +91,7 @@ export async function POST(req: Request) {
           endpoint,
           p256dh,
           auth: authKey,
-          userId,
+          userId: validUserId,
           active: true,
           userAgent,
         },
