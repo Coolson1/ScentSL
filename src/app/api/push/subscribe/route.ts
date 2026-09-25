@@ -27,7 +27,12 @@ const pushSubscriptionSchema = z
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
+    let session = null;
+    try {
+      session = await auth();
+    } catch (authErr) {
+      console.warn("[API/Push/Subscribe] Session resolution notice:", authErr);
+    }
     const userId = session?.user?.id || null;
 
     const body = await req.json().catch(() => null);

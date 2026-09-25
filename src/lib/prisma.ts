@@ -4,9 +4,9 @@ import { PrismaNeon } from "@prisma/adapter-neon";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  // Prefer the pooled connection URL if available (more reliable for serverless)
+  // Respect process.env.DATABASE_URL first, falling back to process.env.DATABASE_URL_POOLED
   const connectionString =
-    process.env.DATABASE_URL_POOLED || process.env.DATABASE_URL!;
+    process.env.DATABASE_URL || process.env.DATABASE_URL_POOLED || "";
   const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter });
 }
