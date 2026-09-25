@@ -10,5 +10,5 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx prisma/seed.ts",
   },
-  datasource: { url: process.env.DATABASE_URL_POOLED || process.env.DATABASE_URL || env("DATABASE_URL") },
+  datasource: { url: process.env.DATABASE_URL || process.env.DATABASE_URL_POOLED || env("DATABASE_URL") },
 });
