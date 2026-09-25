@@ -66,3 +66,51 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
+
+// ─── WEB PUSH NOTIFICATION LISTENERS ───────────────────────
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  try {
+    let payload = {};
+    try {
+      payload = event.data.json();
+    } catch {
+      payload = { title: "Maison ScentSL", body: event.data.text() };
+    }
+
+    const title = payload.title || "Maison ScentSL";
+    const options = {
+      body: payload.body || payload.message || "New luxury fragrance update available.",
+      icon: payload.icon || "/icons/icon-192.png",
+      badge: payload.badge || "/icons/icon-192.png",
+      tag: payload.tag || "scentsl-push",
+      data: payload.data || { url: payload.url || "/" },
+      vibrate: [100, 50, 100],
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (err) {
+    console.error("[SW] Push handling error:", err);
+  }
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const targetUrl = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === targetUrl && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

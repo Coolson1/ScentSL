@@ -5,29 +5,29 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      {
-        status: 401,
-        headers: { "Cache-Control": "no-store, max-age=0" },
-      }
-    );
+  let session = null;
+  try {
+    session = await auth();
+  } catch (authErr) {
+    console.warn("[API/Notifications/Inbox] Session resolution notice:", authErr);
   }
 
-  const userId = session.user.id;
+  const userId = session?.user?.id || null;
   const { searchParams } = new URL(req.url);
   const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10), 50);
 
   const notifications = await prisma.notificationLog.findMany({
-    where: { userId },
+    where: userId
+      ? { OR: [{ userId }, { userId: null }] }
+      : { userId: null },
     orderBy: { createdAt: "desc" },
     take: limit,
   });
 
   const unreadCount = await prisma.notificationLog.count({
-    where: { userId, isRead: false },
+    where: userId
+      ? { OR: [{ userId }, { userId: null }], isRead: false }
+      : { userId: null, isRead: false },
   });
 
   return NextResponse.json(
