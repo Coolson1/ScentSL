@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth, requireStaff } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { sendNotificationBroadcast, sendNotificationToUser } from "@/lib/notifications/service";
 
 const adminSendSchema = z.object({
@@ -29,14 +30,28 @@ export async function POST(req: Request) {
 
   try {
     if (targetType === "SPECIFIC_USER" && targetId) {
+      let resolvedUserId = targetId;
+      const userObj = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { id: targetId },
+            { email: { equals: targetId, mode: "insensitive" } },
+          ],
+        },
+        select: { id: true },
+      });
+      if (userObj) {
+        resolvedUserId = userObj.id;
+      }
+
       const res = await sendNotificationToUser({
-        userId: targetId,
+        userId: resolvedUserId,
         type: "BROADCAST_ANNOUNCEMENT",
         category: "SHOPPING",
         title,
         message,
         url: url || "/products",
-        idempotencyKey: `admin-broadcast-${targetId}-${Date.now()}`,
+        idempotencyKey: `admin-broadcast-${resolvedUserId}-${Date.now()}`,
       });
       return NextResponse.json({ success: true, count: res.count });
     }
