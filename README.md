@@ -225,3 +225,5 @@ npx prisma studio    # browse the database in your browser
 npx tsx scripts/inspect-state.ts   # dump cart/wishlist/review state
 npx tsx scripts/reset-carts.ts     # clear carts, wishlists, reviews
 ```
+
+Added new feat
