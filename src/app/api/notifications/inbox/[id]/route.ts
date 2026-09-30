@@ -36,9 +36,11 @@ export async function PATCH(
           where: {
             userId,
             title: globalNotif.title,
-            createdAt: globalNotif.createdAt,
+            type: globalNotif.type,
+            relatedEntityId: globalNotif.relatedEntityId || undefined,
           },
         });
+
         if (!existing) {
           await prisma.notificationLog.create({
             data: {
@@ -51,7 +53,13 @@ export async function PATCH(
               relatedEntityId: globalNotif.relatedEntityId,
               isRead: true,
               deliveryStatus: globalNotif.deliveryStatus,
+              createdAt: globalNotif.createdAt,
             },
+          });
+        } else if (!existing.isRead) {
+          await prisma.notificationLog.update({
+            where: { id: existing.id },
+            data: { isRead: true },
           });
         }
       }
@@ -90,7 +98,8 @@ export async function PATCH(
       where: {
         userId,
         title: notification.title,
-        createdAt: notification.createdAt,
+        type: notification.type,
+        relatedEntityId: notification.relatedEntityId || undefined,
       },
     });
 
@@ -113,6 +122,7 @@ export async function PATCH(
         relatedEntityId: notification.relatedEntityId,
         isRead: true,
         deliveryStatus: notification.deliveryStatus,
+        createdAt: notification.createdAt,
       },
     });
     return NextResponse.json({ notification: userCopy });
@@ -126,4 +136,5 @@ export async function PATCH(
 
   return NextResponse.json({ notification: updated });
 }
+
 
