@@ -6,6 +6,7 @@ import { useState } from "react";
 import { QuizQuestion } from "./QuizQuestion";
 import { QuizResult } from "./QuizResult";
 import { QuizIntro } from "./QuizIntro";
+import { questions } from "@/lib/quiz-logic";
 import type { QuizAnswer } from "@/lib/quiz-logic";
 
 type QuizState = "intro" | "question" | "loading" | "result";
@@ -16,6 +17,8 @@ export function QuizFlow({ userId }: { userId: string }) {
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
 
   const handleStart = () => {
+    setCurrentQuestion(0);
+    setAnswers([]);
     setState("question");
   };
 
@@ -23,12 +26,18 @@ export function QuizFlow({ userId }: { userId: string }) {
     const newAnswers = [...answers, { questionId: currentQuestion + 1, answer }];
     setAnswers(newAnswers);
 
-    if (currentQuestion < 3) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setState("loading");
-      setTimeout(() => setState("result"), 2000);
+      setTimeout(() => setState("result"), 1600);
     }
+  };
+
+  const handleRetake = () => {
+    setAnswers([]);
+    setCurrentQuestion(0);
+    setState("intro");
   };
 
   return (
@@ -41,12 +50,10 @@ export function QuizFlow({ userId }: { userId: string }) {
         </div>
       )}
 
-      {state === "loading" && (
-        <LoadingScreen />
-      )}
+      {state === "loading" && <LoadingScreen />}
 
       {state === "result" && (
-        <QuizResult answers={answers} userId={userId} />
+        <QuizResult answers={answers} userId={userId} onRetake={handleRetake} />
       )}
     </div>
   );
@@ -65,7 +72,7 @@ function LoadingScreen() {
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
-          Analyzing your olfactory identity
+          Analyzing your olfactory profile & matching fragrance notes...
         </motion.p>
         <motion.div
           className="mt-6 h-px w-32 bg-gradient-to-r from-transparent via-brand-gold to-transparent sm:mt-8 sm:w-48"
@@ -76,4 +83,4 @@ function LoadingScreen() {
       </motion.div>
     </div>
   );
-}
+}

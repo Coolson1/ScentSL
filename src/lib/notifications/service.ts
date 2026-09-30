@@ -143,9 +143,19 @@ export async function sendNotificationBroadcast({
   idempotencyKeyPrefix?: string;
 }): Promise<{ totalSent: number }> {
   try {
-    if (userIds && userIds.length > 0) {
+    let targetUserIds = userIds;
+
+    // If userIds not explicitly passed, gather all registered user IDs so each user gets an isolated NotificationLog record
+    if (!targetUserIds || targetUserIds.length === 0) {
+      const allUsers = await prisma.user.findMany({
+        select: { id: true },
+      });
+      targetUserIds = allUsers.map((u) => u.id);
+    }
+
+    if (targetUserIds.length > 0) {
       let totalSent = 0;
-      for (const uid of userIds) {
+      for (const uid of targetUserIds) {
         const ik = idempotencyKeyPrefix ? `${idempotencyKeyPrefix}-${uid}` : undefined;
         const res = await sendNotificationToUser({
           userId: uid,
@@ -162,7 +172,7 @@ export async function sendNotificationBroadcast({
       return { totalSent };
     }
 
-    // Broadcast to ALL active push subscriptions in DB (registered users + guests)
+    // Fallback broadcast to active subscriptions (guests without user accounts)
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { active: true },
     });
@@ -178,7 +188,6 @@ export async function sendNotificationBroadcast({
       data: { type, relatedEntityId },
     };
 
-    // Log notification record
     await prisma.notificationLog.create({
       data: {
         type,
