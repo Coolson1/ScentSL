@@ -38,8 +38,9 @@ export async function GET(req: Request) {
     take: limit,
   });
 
+  // Create robust matching key set based on title, type, and optional entity ID
   const userNotificationKeys = new Set(
-    userNotifications.map((n) => `${n.title}-${n.type}-${new Date(n.createdAt).getTime()}`)
+    userNotifications.map((n) => `${n.title.trim()}-${n.type}-${n.relatedEntityId || ""}`)
   );
 
   // 2. Fetch shared broadcast notifications (userId: null)
@@ -49,12 +50,12 @@ export async function GET(req: Request) {
     take: limit,
   });
 
-  // Filter out any shared notifications that already have a user-specific record
+  // Exclude shared notifications if user already has a user-specific copy
   const uniqueShared = sharedNotifications.filter(
-    (n) => !userNotificationKeys.has(`${n.title}-${n.type}-${new Date(n.createdAt).getTime()}`)
+    (n) => !userNotificationKeys.has(`${n.title.trim()}-${n.type}-${n.relatedEntityId || ""}`)
   );
 
-  // 3. Merge, sort, and slice to requested limit
+  // 3. Merge, sort by createdAt descending, and take up to limit
   const combined = [...userNotifications, ...uniqueShared]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);
@@ -68,4 +69,5 @@ export async function GET(req: Request) {
     }
   );
 }
+
 
