@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import type { Role } from "@/generated/prisma/enums";
+import { NotificationInbox } from "@/components/notifications/NotificationInbox";
 
 type NavLink = {
   label: string;
@@ -78,24 +79,27 @@ function NavList({ role }: { role: Role }) {
 
 function SidebarHeader() {
   return (
-    <div className="px-6 py-6 border-b border-brand-gold/20 flex items-center gap-3">
-      <div className="relative overflow-hidden rounded-full border border-brand-gold/40 shadow-sm shrink-0">
-        <Image
-          src="/scentsl.jpeg"
-          alt="ScentSL Logo"
-          width={36}
-          height={36}
-          className="h-9 w-9 rounded-full object-cover"
-        />
+    <div className="px-6 py-6 border-b border-brand-gold/20 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="relative overflow-hidden rounded-full border border-brand-gold/40 shadow-sm shrink-0">
+          <Image
+            src="/scentsl.jpeg"
+            alt="ScentSL Logo"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-full object-cover"
+          />
+        </div>
+        <div className="min-w-0">
+          <Link href="/admin" className="font-serif text-2xl text-brand-gold block truncate">
+            ScentSL
+          </Link>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-brand-white/40 truncate">
+            Admin Console
+          </p>
+        </div>
       </div>
-      <div>
-        <Link href="/admin" className="font-serif text-2xl text-brand-gold">
-          ScentSL
-        </Link>
-        <p className="text-[10px] uppercase tracking-[0.2em] text-brand-white/40">
-          Admin Console
-        </p>
-      </div>
+      <NotificationInbox align="left" className="text-brand-white/80 hover:text-brand-gold" />
     </div>
   );
 }
@@ -151,28 +155,31 @@ export function AdminSidebar({
           />
           ScentSL
         </Link>
-        <Sheet>
-          <SheetTrigger
-            render={
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-transparent border-brand-gold/40 text-brand-white hover:bg-brand-gold/10"
-              />
-            }
-          >
-            <Menu className="size-4" />
-          </SheetTrigger>
-          <SheetContent
-            side="left"
-            className="w-full sm:w-72 bg-brand-black text-brand-white border-brand-gold/20 p-0 flex flex-col"
-          >
-            <SheetTitle className="sr-only">Admin navigation</SheetTitle>
-            <SidebarHeader />
-            <NavList role={role} />
-            <SidebarFooter email={userEmail} role={role} />
-          </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-2">
+          <NotificationInbox align="right" className="text-brand-white/80 hover:text-brand-gold" />
+          <Sheet>
+            <SheetTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent border-brand-gold/40 text-brand-white hover:bg-brand-gold/10"
+                />
+              }
+            >
+              <Menu className="size-4" />
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-full sm:w-72 bg-brand-black text-brand-white border-brand-gold/20 p-0 flex flex-col"
+            >
+              <SheetTitle className="sr-only">Admin navigation</SheetTitle>
+              <SidebarHeader />
+              <NavList role={role} />
+              <SidebarFooter email={userEmail} role={role} />
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </>
   );

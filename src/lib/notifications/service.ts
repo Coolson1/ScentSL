@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendWebPush, PushNotificationPayload } from "./vapid";
+import { formatSLE } from "@/lib/utils";
 
 export type NotificationCategory =
   | "TRANSACTIONAL"
@@ -215,19 +216,114 @@ export async function sendNotificationBroadcast({
 
 // ─── SPECIFIC NOTIFICATION TRIGGERS ───────────────────────
 
-export async function notifyOrderConfirmed(order: { id: string; orderNumber?: string | null; userId?: string | null }) {
-  if (!order.userId) return;
+export async function notifyAdminsNewOrder(order: {
+  id: string;
+  orderNumber?: string | null;
+  userId?: string | null;
+  guestEmail?: string | null;
+  total?: number | null;
+}) {
+  try {
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        role: { in: ["ADMIN", "STAFF"] },
+      },
+      select: { id: true },
+    });
+
+    if (adminUsers.length === 0) return;
+
+    let orderDetails = order;
+    let recipientName: string | null = null;
+
+    if (orderDetails.total === undefined || (!orderDetails.guestEmail && !orderDetails.userId)) {
+      const dbOrder = await prisma.order.findUnique({
+        where: { id: order.id },
+        select: {
+          id: true,
+          orderNumber: true,
+          userId: true,
+          guestEmail: true,
+          total: true,
+          address: { select: { recipientName: true } },
+        },
+      });
+      if (dbOrder) {
+        orderDetails = dbOrder;
+        recipientName = dbOrder.address?.recipientName || null;
+      }
+    } else {
+      const dbAddress = await prisma.order.findUnique({
+        where: { id: order.id },
+        select: { address: { select: { recipientName: true } } },
+      });
+      recipientName = dbAddress?.address?.recipientName || null;
+    }
+
+    const orderNum = orderDetails.orderNumber || orderDetails.id.slice(0, 8);
+
+    let customerName = "Guest";
+    if (recipientName) {
+      customerName = recipientName;
+    } else if (orderDetails.guestEmail) {
+      customerName = orderDetails.guestEmail;
+    } else if (orderDetails.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: orderDetails.userId },
+        select: { name: true, email: true },
+      });
+      if (user) {
+        customerName = user.name || user.email || "Customer";
+      }
+    }
+
+    const amountStr = orderDetails.total != null ? ` (${formatSLE(orderDetails.total)})` : "";
+    const title = "New Order Placed 🛍️";
+    const message = `Order #${orderNum} has been placed by ${customerName}${amountStr}.`;
+    const url = `/admin/orders/${orderDetails.id}`;
+
+    for (const admin of adminUsers) {
+      await sendNotificationToUser({
+        userId: admin.id,
+        type: "ORDER_CONFIRMED",
+        category: "TRANSACTIONAL",
+        title,
+        message,
+        url,
+        relatedEntityId: orderDetails.id,
+        idempotencyKey: `admin-new-order-${orderDetails.id}-${admin.id}`,
+      });
+    }
+  } catch (err) {
+    console.error("[NotificationService] Error notifying admins of new order:", err);
+  }
+}
+
+export async function notifyOrderConfirmed(order: {
+  id: string;
+  orderNumber?: string | null;
+  userId?: string | null;
+  guestEmail?: string | null;
+  total?: number | null;
+}) {
   const orderNum = order.orderNumber || order.id.slice(0, 8);
-  await sendNotificationToUser({
-    userId: order.userId,
-    type: "ORDER_CONFIRMED",
-    category: "TRANSACTIONAL",
-    title: "Order Confirmed 🎉",
-    message: `Your ScentSL order #${orderNum} has been confirmed.`,
-    url: `/account/orders/${order.id}`,
-    relatedEntityId: order.id,
-    idempotencyKey: `order-confirmed-${order.id}`,
-  });
+
+  if (order.userId) {
+    await sendNotificationToUser({
+      userId: order.userId,
+      type: "ORDER_CONFIRMED",
+      category: "TRANSACTIONAL",
+      title: "Order Confirmed 🎉",
+      message: `Your ScentSL order #${orderNum} has been confirmed.`,
+      url: `/account/orders/${order.id}`,
+      relatedEntityId: order.id,
+      idempotencyKey: `order-confirmed-${order.id}`,
+    });
+  }
+
+  await notifyAdminsNewOrder(order).catch((err) =>
+    console.error("[NotificationService] Failed to notify admins of new order:", err)
+  );
 }
 
 export async function notifyPaymentSuccessful(order: { id: string; orderNumber?: string | null; userId?: string | null }) {
