@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type NotificationItem = {
   id: string;
@@ -15,7 +16,13 @@ type NotificationItem = {
   createdAt: string;
 };
 
-export function NotificationInbox() {
+export function NotificationInbox({
+  className,
+  align = "right",
+}: {
+  className?: string;
+  align?: "left" | "right";
+} = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -84,7 +91,10 @@ export function NotificationInbox() {
     <div ref={containerRef} className="relative">
       <button
         onClick={handleToggle}
-        className="relative flex items-center justify-center p-2 text-ink/75 transition-colors hover:text-brand-gold focus:outline-none"
+        className={cn(
+          "relative flex items-center justify-center p-2 text-ink/75 transition-colors hover:text-brand-gold focus:outline-none",
+          className
+        )}
         aria-label="Notification inbox"
       >
         <BellIcon className="size-5" />
@@ -96,7 +106,12 @@ export function NotificationInbox() {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 rounded-2xl border border-ink/15 bg-parchment-soft p-4 shadow-2xl backdrop-blur-md z-50 animate-in fade-in duration-200">
+        <div
+          className={cn(
+            "fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:w-96 rounded-2xl border border-ink/15 bg-parchment-soft p-4 shadow-2xl backdrop-blur-md z-50 animate-in fade-in duration-200",
+            align === "left" ? "sm:left-0" : "sm:right-0"
+          )}
+        >
           <div className="flex items-center justify-between border-b border-ink/10 pb-3">
             <div>
               <h3 className="font-display text-sm font-medium text-ink">Notifications</h3>
