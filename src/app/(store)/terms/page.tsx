@@ -85,7 +85,7 @@ export default function TermsPage() {
             </h2>
             <p>
               If you have questions regarding these Terms of Service, please contact our team at{" "}
-              <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a>.
+              <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a>.
             </p>
           </section>
         </div>
