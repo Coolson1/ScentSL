@@ -96,7 +96,7 @@ export default function CookiePolicyPage() {
             </h2>
             <p>
               If you have any questions regarding our Cookie Policy, please contact our privacy officer at{" "}
-              <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a>.
+              <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a>.
             </p>
           </section>
         </div>

@@ -51,7 +51,7 @@ export function Newsletter() {
             </button>
           </form>
           <p className="mt-3 text-left text-[10px] uppercase tracking-[0.24em] text-ink/75">
-            Zero spam. Unsubscribe at any time with one click or by contacting hello@scentsl.com.
+            Zero spam. Unsubscribe at any time with one click or by contacting scentsl001@gmail.com.
           </p>
         </Reveal>
       </div>

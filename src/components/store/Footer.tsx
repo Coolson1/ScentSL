@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { Ornament } from "./Ornament";
+import { FooterContact } from "./FooterContact";
 
 export function Footer() {
   return (
@@ -44,7 +45,7 @@ export function Footer() {
               those who collect their hours.
             </p>
             <p className="mt-6 text-[11px] uppercase tracking-[0.32em] text-brand-gold font-medium">
-              hello@scentsl.com
+              scentsl001@gmail.com
             </p>
             <p className="mt-1 text-[11px] uppercase tracking-[0.32em] text-parchment/80">
               ScentSL Maison Ltd. · Freetown, Sierra Leone
@@ -76,31 +77,7 @@ export function Footer() {
             />
           </div>
 
-          <div className="md:col-span-4">
-            <FooterHeader>Letters</FooterHeader>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-parchment/80">
-              Quiet correspondence on new chapters, private releases, and
-              fragrance journals. No more than twice a month.
-            </p>
-            <form className="mt-5 flex items-end gap-3 border-b border-parchment/40 pb-2 focus-within:border-brand-gold">
-              <input
-                type="email"
-                required
-                placeholder="Your email address"
-                aria-label="Your email address for newsletter subscription"
-                className="flex-1 bg-transparent text-sm text-parchment placeholder:text-parchment/50 focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="text-[11px] uppercase tracking-[0.32em] text-brand-gold transition-colors hover:text-parchment focus-visible:outline-2 focus-visible:outline-brand-gold"
-              >
-                Subscribe →
-              </button>
-            </form>
-            <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-parchment/65">
-              Unsubscribe anytime using the link in our letters or emailing hello@scentsl.com.
-            </p>
-          </div>
+          <FooterContact />
         </div>
 
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-parchment/15 pt-6 text-[10px] uppercase tracking-[0.32em] text-parchment/75 sm:flex-row">

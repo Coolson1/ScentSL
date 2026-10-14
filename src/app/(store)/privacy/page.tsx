@@ -97,7 +97,7 @@ export default function PrivacyPolicyPage() {
               <Link href="/data-deletion" className="text-brand-gold underline hover:text-ink">
                 Data Deletion Request Page
               </Link>{" "}
-              or email us directly at <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a>.
+              or email us directly at <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a>.
             </p>
           </section>
 
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
             <p>
               ScentSL Maison Ltd.<br />
               Freetown, Sierra Leone<br />
-              Email: <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a>
+              Email: <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a>
             </p>
           </section>
         </div>

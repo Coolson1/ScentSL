@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 // Default VAPID details fallback
 const defaultPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const defaultPrivateKey = process.env.VAPID_PRIVATE_KEY || "";
-const defaultSubject = process.env.VAPID_SUBJECT || "mailto:support@scentsl.com";
+const defaultSubject = process.env.VAPID_SUBJECT || "mailto:scentsl001@gmail.com";
 
 if (defaultPublicKey && defaultPrivateKey) {
   try {

@@ -57,7 +57,7 @@ export default function RefundPolicyPage() {
               3. Damaged or Defective Items
             </h2>
             <p>
-              If your bottle arrives damaged, leaking, or with a defective atomizer, please contact us within 48 hours of delivery at <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a> with a photo of the damaged package. We will immediately ship a replacement bottle at zero cost to you or process a full refund.
+              If your bottle arrives damaged, leaking, or with a defective atomizer, please contact us within 48 hours of delivery at <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a> with a photo of the damaged package. We will immediately ship a replacement bottle at zero cost to you or process a full refund.
             </p>
           </section>
 
@@ -75,7 +75,7 @@ export default function RefundPolicyPage() {
               5. How to Initiate a Return
             </h2>
             <p>
-              To initiate a return, email us at <a href="mailto:hello@scentsl.com" className="text-brand-gold underline hover:text-ink">hello@scentsl.com</a> with your order number. Our team will guide you through the return process.
+              To initiate a return, email us at <a href="mailto:scentsl001@gmail.com" className="text-brand-gold underline hover:text-ink">scentsl001@gmail.com</a> with your order number. Our team will guide you through the return process.
             </p>
           </section>
         </div>
