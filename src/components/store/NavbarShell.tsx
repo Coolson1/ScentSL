@@ -69,13 +69,7 @@ export function NavbarShell({
             <span className="font-display text-[1.35rem] font-light tracking-[0.18em] text-ink transition-colors duration-300 group-hover:text-brand-gold sm:text-[1.6rem]">
               SCENTSL
             </span>
-            <span
-              className={`text-[8px] sm:text-[9px] uppercase tracking-[0.45em] text-ink/55 transition-opacity duration-300 ${
-                scrolled ? "hidden sm:block opacity-0" : "opacity-100"
-              }`}
-            >
-              est. Freetown · maison de parfum
-            </span>
+
           </div>
         </Link>
 
