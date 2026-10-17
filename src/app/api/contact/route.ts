@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 const BUSINESS_EMAIL = "scentsl001@gmail.com";
 
@@ -12,6 +12,17 @@ const BUSINESS_EMAIL = "scentsl001@gmail.com";
  * and forwards it to the business Gmail via Resend.
  */
 export async function POST(req: Request) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("[Contact API] RESEND_API_KEY is not set.");
+    return NextResponse.json(
+      { error: "Email service is not configured." },
+      { status: 503 }
+    );
+  }
+
+  const resend = new Resend(apiKey);
+
   try {
     const body = await req.json();
     const { name, message } = body as { name?: string; message?: string };
