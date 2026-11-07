@@ -96,12 +96,12 @@ export async function createCheckoutSession(
   const body = {
     name:
       params.name ||
-      `Order #${params.orderNumber.slice(-8).toUpperCase()} — ScentSL`,
+      `Order #${params.orderNumber.slice(-8).toUpperCase()} | ScentSL`,
     lineItems: params.lineItems,
     reference: params.orderId,
     description:
       params.description ||
-      `ScentSL perfume order — ref ${params.orderId}`,
+      `ScentSL perfume order (ref ${params.orderId})`,
     cancelUrl: params.cancelUrl,
     successUrl: params.successUrl,
     brandingOptions: {

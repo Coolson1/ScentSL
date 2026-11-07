@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Ornament } from "@/components/store/Ornament";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — ScentSL Maison",
+  title: "Terms of Service | ScentSL Maison",
   description:
     "Review the terms and conditions governing purchases, delivery, transparent pricing, and use of ScentSL website.",
 };

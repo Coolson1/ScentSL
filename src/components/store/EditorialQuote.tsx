@@ -12,13 +12,13 @@ export function EditorialQuote() {
       <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
         <Reveal>
           <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-            — A note from the maison —
+            A note from the maison
           </p>
         </Reveal>
         <Reveal delay={0.12} className="mt-10">
           <blockquote className="font-display text-[clamp(2rem,5vw,3.8rem)] font-light leading-[1.05] tracking-[-0.01em] text-ink">
             &ldquo;Smell is a word.{" "}
-            <em className="italic text-brand-gold">Perfume</em>, a literature —
+            <em className="italic text-brand-gold">Perfume</em> is literature,
             a way of keeping the unkeepable.&rdquo;
           </blockquote>
         </Reveal>

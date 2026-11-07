@@ -63,7 +63,7 @@ export default async function OrdersPage() {
         {orders.length === 0 ? (
           <div className="flex flex-col items-center border-y border-ink/10 px-6 py-24 text-center">
             <p className="font-display text-3xl italic text-ink/40">
-              — your archive is quiet —
+              Your archive is quiet
             </p>
             <p className="mt-4 text-[10px] uppercase tracking-[0.32em] text-ink/55">
               No chapters have been ordered yet.
@@ -116,7 +116,7 @@ export default async function OrdersPage() {
                         STATUS_TONES[order.status] ?? "text-ink/65",
                       )}
                     >
-                      — {STATUS_LABELS[order.status] ?? order.status}
+                      {STATUS_LABELS[order.status] ?? order.status}
                     </p>
                   </div>
                   <div className="sm:col-span-2">

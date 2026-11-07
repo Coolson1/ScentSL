@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Ornament } from "@/components/store/Ornament";
 
 export const metadata: Metadata = {
-  title: "Refund & Return Policy — ScentSL Maison",
+  title: "Refund & Return Policy | ScentSL Maison",
   description:
     "Read ScentSL transparent 14-day return and refund policy for hand-blended luxury fragrances.",
 };
@@ -66,7 +66,7 @@ export default function RefundPolicyPage() {
               4. Refund Processing
             </h2>
             <p>
-              Once your returned item is received and inspected at our Freetown atelier, refunds are processed within 3–5 business days back to your original payment method (Monime / Mobile Money / Bank). You will receive an email confirmation once the refund is issued.
+              Once your returned item is received and inspected at our Freetown atelier, refunds are processed within 3 to 5 business days back to your original payment method (Monime / Mobile Money / Bank). You will receive an email confirmation once the refund is issued.
             </p>
           </section>
 

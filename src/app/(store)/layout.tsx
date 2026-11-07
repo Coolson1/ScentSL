@@ -9,7 +9,7 @@ export default async function StoreLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Idempotent — only does work for signed-in users with a lingering
+  // Idempotent: only does work for signed-in users with a lingering
   // cart-session cookie. Cheap no-op for everyone else.
   try {
     await mergeGuestCart();

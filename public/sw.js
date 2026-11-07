@@ -1,4 +1,4 @@
-const CACHE_NAME = "scentsl-cache-v1";
+const CACHE_NAME = "scentsl-cache-v2";
 const OFFLINE_URL = "/";
 
 const STATIC_ASSETS = [
@@ -10,7 +10,9 @@ const STATIC_ASSETS = [
   "/icons/icon-512.png",
   "/icons/maskable-icon-192.png",
   "/icons/maskable-icon-512.png",
-  "/icons/apple-touch-icon.png"
+  "/icons/apple-touch-icon.png",
+  "/icons/notification-icon-192.png",
+  "/icons/notification-badge.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -83,8 +85,8 @@ self.addEventListener("push", (event) => {
     const title = payload.title || "Maison ScentSL";
     const options = {
       body: payload.body || payload.message || "New luxury fragrance update available.",
-      icon: payload.icon || "/icons/icon-192.png",
-      badge: payload.badge || "/icons/icon-192.png",
+      icon: payload.icon || "/icons/notification-icon-192.png",
+      badge: payload.badge || "/icons/notification-badge.png",
       tag: payload.tag || "scentsl-push",
       data: payload.data || { url: payload.url || "/" },
       vibrate: [100, 50, 100],

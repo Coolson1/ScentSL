@@ -41,7 +41,7 @@ export function Footer() {
         <div className="grid gap-12 border-t border-parchment/15 pt-12 md:grid-cols-12">
           <div className="md:col-span-4">
             <p className="font-display text-2xl italic leading-tight text-parchment/90">
-              A small archive of fragrance, blended in Freetown — composed for
+              A small archive of fragrance blended in Freetown, composed for
               those who collect their hours.
             </p>
             <p className="mt-6 text-[11px] uppercase tracking-[0.32em] text-brand-gold font-medium">
@@ -81,7 +81,7 @@ export function Footer() {
         </div>
 
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-parchment/15 pt-6 text-[10px] uppercase tracking-[0.32em] text-parchment/75 sm:flex-row">
-          <span>© {new Date().getFullYear()} ScentSL Maison Ltd. — All rights reserved.</span>
+          <span>© {new Date().getFullYear()} ScentSL Maison Ltd. All rights reserved.</span>
           <div className="flex flex-wrap gap-6">
             <Link href="/privacy" className="transition-colors hover:text-brand-gold focus-visible:outline-2 focus-visible:outline-brand-gold">
               Privacy

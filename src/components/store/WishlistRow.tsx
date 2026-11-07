@@ -120,7 +120,7 @@ export function WishlistRow({
             >
               {variants.map((v) => (
                 <option key={v.id} value={v.id} disabled={v.stock === 0}>
-                  {v.size} — {formatSLE(v.price)}
+                  {v.size} · {formatSLE(v.price)}
                   {v.stock === 0 ? " · sold out" : ""}
                 </option>
               ))}

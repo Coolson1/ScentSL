@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-parchment">
-      <header className="border-b border-ink/10 bg-white/80 backdrop-blur-sm">
+      <header style={{ paddingTop: "var(--pwa-top-offset, env(safe-area-inset-top, 0px))", paddingLeft: "env(safe-area-inset-left, 0px)", paddingRight: "env(safe-area-inset-right, 0px)" }} className="sticky top-0 z-30 border-b border-ink/10 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto max-w-6xl px-4 py-4">
           <Link
             href="/"

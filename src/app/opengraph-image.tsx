@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const runtime = "nodejs";
-export const alt = "ScentSL — Luxury Fragrance, Freetown";
+export const alt = "ScentSL | Luxury Fragrance, Freetown";
 export const size = {
   width: 1200,
   height: 630,

@@ -56,7 +56,7 @@ const schema = z
   })
   .refine(
     (v) => v.type !== "PERCENTAGE" || (v.value >= 1 && v.value <= 100),
-    { path: ["value"], message: "Percentage must be 1–100" },
+    { path: ["value"], message: "Percentage must be 1 to 100" },
   );
 
 type FormInput = z.input<typeof schema>;

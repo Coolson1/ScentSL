@@ -71,7 +71,7 @@ export default async function AdminStaffPage() {
                 return (
                   <TableRow key={s.id}>
                     <TableCell>
-                      <div className="font-medium">{s.name ?? "—"}</div>
+                      <div className="font-medium">{s.name ?? "Not set"}</div>
                       {isSelf && (
                         <Badge variant="secondary" className="mt-1 text-[10px]">
                           You

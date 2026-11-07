@@ -117,7 +117,7 @@ function GenderCard({ panel }: { panel: GenderItem }) {
 
         <div className="absolute inset-x-6 top-6 flex items-center justify-between text-parchment/90">
           <span className="font-display text-xs tracking-[0.3em] uppercase text-brand-gold">
-            {panel.number} — {panel.title}
+            {panel.number} · {panel.title}
           </span>
           <span className="text-[10px] uppercase tracking-[0.32em] text-parchment/60">
             ScentSL

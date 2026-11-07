@@ -36,7 +36,7 @@ function RetryPaymentContent() {
         aria-label="Loading"
       />
       <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-        — Preparing payment —
+        Preparing payment
       </p>
       <p className="font-serif text-base text-ink/70">
         Redirecting you to the payment page…

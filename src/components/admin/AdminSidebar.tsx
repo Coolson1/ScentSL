@@ -142,7 +142,7 @@ export function AdminSidebar({
 
       {/* Mobile trigger */}
       <div
-        style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}
+        style={{ paddingTop: "calc(0.75rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px)))", paddingLeft: "max(1rem, env(safe-area-inset-left, 0px))", paddingRight: "max(1rem, env(safe-area-inset-right, 0px))" }}
         className="lg:hidden flex items-center justify-between border-b border-brand-gold/20 bg-brand-black px-4 pb-3 text-brand-white"
       >
         <Link href="/admin" className="flex items-center gap-2 font-serif text-lg text-brand-gold">
@@ -171,6 +171,7 @@ export function AdminSidebar({
             </SheetTrigger>
             <SheetContent
               side="left"
+              style={{ paddingTop: "var(--pwa-top-offset, env(safe-area-inset-top, 0px))" }}
               className="w-full sm:w-72 bg-brand-black text-brand-white border-brand-gold/20 p-0 flex flex-col"
             >
               <SheetTitle className="sr-only">Admin navigation</SheetTitle>

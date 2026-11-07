@@ -15,13 +15,13 @@ const prisma = new PrismaClient({ adapter });
 // Wikimedia entries are real product photos of the named perfume.
 // Unsplash entries are stock perfume-bottle photography (generic).
 const IMG = {
-  // Wikimedia — real bottle photos
+  // Wikimedia: real bottle photos
   chanelNo5: "https://upload.wikimedia.org/wikipedia/commons/8/85/CHANEL_No5_parfum.jpg",
   chanelNo5Alt: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Chanel_No._5_Fragrance_Austin_Calhoon_Photograph.jpg",
   shalimar: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Perfume_Shalimar.jpg",
   adpColonia: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Acqua_di_Parma_Colonia.jpg",
   adpAlt: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Acqua_di_Parma.jpg",
-  // Unsplash — generic perfume photography
+  // Unsplash: generic perfume photography
   u1: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&q=80",
   u2: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&q=80",
   u3: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&q=80",
@@ -66,7 +66,7 @@ const categories: { name: string; slug: string; image: string }[] = [
 ];
 
 const products: SeedProduct[] = [
-  // ── Vendor Specific Test Products ─────────────────────
+  // Vendor Specific Test Products
   {
     name: "Lattafa Khamrah",
     slug: "lattafa-khamrah",
@@ -136,7 +136,7 @@ const products: SeedProduct[] = [
   {
     name: "Oud for Glory",
     slug: "oud-for-glory",
-    description: "Lattafa Bade'e Al Oud - an intense woody fragrance with lavender, saffron, nutmeg and natural oud wood.",
+    description: "Lattafa Bade'e Al Oud, an intense woody fragrance with lavender, saffron, nutmeg and natural oud wood.",
     categorySlug: "oud",
     images: [IMG.u5, IMG.u14],
     gender: "UNISEX",
@@ -145,7 +145,7 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Oud ──────────────────────────────────────────────
+  // Oud
   {
     name: "Tom Ford Oud Wood",
     slug: "tom-ford-oud-wood",
@@ -163,7 +163,7 @@ const products: SeedProduct[] = [
     name: "Maison Francis Kurkdjian Oud Satin Mood",
     slug: "mfk-oud-satin-mood",
     description:
-      "Velvet rose petals folded into oud, violet and Damascus rose absolute — voluptuous and resinous.",
+      "Velvet rose petals folded into oud, violet, and Damascus rose absolute, voluptuous and resinous.",
     categorySlug: "oud",
     images: [IMG.u4, IMG.u14],
     variants: [
@@ -198,7 +198,7 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Floral ───────────────────────────────────────────
+  // Floral
   {
     name: "Chanel No. 5",
     slug: "chanel-no-5",
@@ -243,7 +243,7 @@ const products: SeedProduct[] = [
     name: "Marc Jacobs Daisy",
     slug: "marc-jacobs-daisy",
     description:
-      "A playful daisy chain of wild strawberry, violet leaves and white wood — youthful and luminous.",
+      "A playful daisy chain of wild strawberry, violet leaves, and white wood, youthful and luminous.",
     categorySlug: "floral",
     images: [IMG.u17, IMG.u6],
     variants: [
@@ -253,7 +253,7 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Woody ────────────────────────────────────────────
+  // Woody
   {
     name: "Le Labo Santal 33",
     slug: "le-labo-santal-33",
@@ -284,7 +284,7 @@ const products: SeedProduct[] = [
     name: "Byredo Mojave Ghost",
     slug: "byredo-mojave-ghost",
     description:
-      "A desert mirage of ambrette, sandalwood, magnolia and chantilly musk — softly cinematic.",
+      "A desert mirage of ambrette, sandalwood, magnolia, and chantilly musk, softly cinematic.",
     categorySlug: "woody",
     images: [IMG.u12, IMG.u18],
     variants: [
@@ -293,7 +293,7 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Citrus & Fresh ───────────────────────────────────
+  // Citrus & Fresh
   {
     name: "Acqua di Parma Colonia",
     slug: "acqua-di-parma-colonia",
@@ -312,7 +312,7 @@ const products: SeedProduct[] = [
     name: "Mugler Cologne",
     slug: "mugler-cologne",
     description:
-      "An aromatic neroli and bergamot cologne grounded in clean white musk — fresh and ungendered.",
+      "An aromatic neroli and bergamot cologne grounded in clean white musk, fresh and effortless.",
     categorySlug: "citrus-fresh",
     images: [IMG.u11, IMG.u19],
     variants: [
@@ -334,12 +334,12 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Oriental & Amber ─────────────────────────────────
+  // Oriental & Amber
   {
     name: "Yves Saint Laurent Black Opium",
     slug: "ysl-black-opium",
     description:
-      "Black coffee accord swirled into vanilla, white florals and pink pepper — addictive and nocturnal.",
+      "Black coffee accord swirled into vanilla, white florals, and pink pepper, bold and nocturnal.",
     categorySlug: "oriental-amber",
     images: [IMG.u8, IMG.u15],
     isFeatured: true,
@@ -365,7 +365,7 @@ const products: SeedProduct[] = [
     name: "Tom Ford Black Orchid",
     slug: "tom-ford-black-orchid",
     description:
-      "Dark truffle, ylang-ylang, black orchid and patchouli — opulent and unmistakably nocturnal.",
+      "Dark truffle, ylang-ylang, black orchid, and patchouli, opulent and unmistakably nocturnal.",
     categorySlug: "oriental-amber",
     images: [IMG.u15, IMG.u8],
     variants: [
@@ -387,12 +387,12 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Gourmand ─────────────────────────────────────────
+  // Gourmand
   {
     name: "Thierry Mugler Angel",
     slug: "mugler-angel",
     description:
-      "The 1992 gourmand pioneer: praline, red berries, honey and patchouli — celestial and divisive.",
+      "The 1992 gourmand pioneer with praline, red berries, honey, and patchouli, celestial and unforgettable.",
     categorySlug: "gourmand",
     images: [IMG.u11, IMG.u2],
     isFeatured: true,
@@ -406,7 +406,7 @@ const products: SeedProduct[] = [
     name: "Lancôme La Vie Est Belle",
     slug: "lancome-la-vie-est-belle",
     description:
-      "Iris, praline and patchouli woven into a sunlit gourmand — soft, sweet and confident.",
+      "Iris, praline, and patchouli woven into a sunlit gourmand, soft, sweet, and confident.",
     categorySlug: "gourmand",
     images: [IMG.u17, IMG.u7],
     variants: [
@@ -419,7 +419,7 @@ const products: SeedProduct[] = [
     name: "Kayali Vanilla 28",
     slug: "kayali-vanilla-28",
     description:
-      "Madagascar vanilla, tonka and orchid layered with brown sugar — a modern niche gourmand.",
+      "Madagascar vanilla, tonka, and orchid layered with brown sugar, a modern niche gourmand.",
     categorySlug: "gourmand",
     images: [IMG.u6, IMG.u11],
     variants: [
@@ -428,7 +428,7 @@ const products: SeedProduct[] = [
     ],
   },
 
-  // ── Musk ─────────────────────────────────────────────
+  // Musk
   {
     name: "Narciso Rodriguez For Her",
     slug: "narciso-rodriguez-for-her",
@@ -446,7 +446,7 @@ const products: SeedProduct[] = [
     name: "Maison Margiela Replica Lazy Sunday Morning",
     slug: "margiela-replica-lazy-sunday-morning",
     description:
-      "Clean cotton, iris and white musk — the scent of fresh linens still warm from the dryer.",
+      "Clean cotton, iris, and white musk, the scent of fresh linens still warm from the dryer.",
     categorySlug: "musk",
     images: [IMG.u13, IMG.u9],
     variants: [
@@ -469,7 +469,7 @@ const products: SeedProduct[] = [
 ];
 
 async function main() {
-  // ── Admin user ─────────────────────────────────────────
+  // Admin user
   const adminEmail = process.env.ADMIN_EMAIL;
   const rawAdminPassword = process.env.ADMIN_PASSWORD;
 
@@ -507,7 +507,7 @@ async function main() {
     },
   });
 
-  // ── Categories ─────────────────────────────────────────
+  // Categories
   const categoryBySlug = new Map<string, { id: string }>();
   for (const c of categories) {
     const existing = await prisma.category.findUnique({ where: { slug: c.slug } });
@@ -522,7 +522,7 @@ async function main() {
     categoryBySlug.set(c.slug, row);
   }
 
-  // ── Vendors ─────────────────────────────────────────────
+  // Vendors
   const vendorA = await prisma.vendor.upsert({
     where: { id: "vendor-a-lattafa" },
     update: {
@@ -617,7 +617,7 @@ async function main() {
     return code === 0 ? vendorA.id : code === 1 ? vendorB.id : vendorC.id;
   }
 
-  // ── Perfume catalog ────────────────────────────────────
+  // Perfume catalog
   for (const p of products) {
     const category = categoryBySlug.get(p.categorySlug);
     if (!category) {
@@ -656,7 +656,7 @@ async function main() {
     }
   }
 
-  // ── Delivery zones ─────────────────────────────────────
+  // Delivery zones
   await prisma.deliveryZone.createMany({
     skipDuplicates: true,
     data: [
@@ -675,7 +675,7 @@ async function main() {
     prisma.productVariant.count(),
   ]);
   console.log(
-    `Seed complete — ${catCount} categories, ${prodCount} products, ${variantCount} variants.`,
+    `Seed complete: ${catCount} categories, ${prodCount} products, ${variantCount} variants.`,
   );
 }
 

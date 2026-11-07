@@ -137,7 +137,7 @@ export function CheckoutForm({
     <div className="grid gap-8 sm:gap-12 md:grid-cols-[1fr_320px] lg:grid-cols-[1fr_400px] md:gap-16 lg:gap-20">
       {showCancelledBanner && (
         <div className="border-l-2 border-brand-rose bg-brand-rose/10 px-5 py-4 font-serif text-base italic text-ink/80 lg:col-span-2">
-          Your previous payment was cancelled. The bag is kept — please try again
+          Your previous payment was cancelled. Your bag is saved, so please try again
           below.
         </div>
       )}
@@ -323,7 +323,7 @@ export function CheckoutForm({
           ✓ No hidden fees or unexpected surcharges. Taxes and zone delivery are fully itemized above.
         </p>
         <p className="mt-2 text-center text-[10px] uppercase tracking-[0.32em] text-ink/65">
-          — Secure Payments via Monime —
+          Secure Payments via Monime
         </p>
       </aside>
     </div>
@@ -411,7 +411,7 @@ function ZoneSelect({
         >
           {zones.map((zone) => (
             <option key={zone.id} value={zone.id}>
-              {zone.name} — {zone.fee === 0 ? "Free (SLE 0.00)" : formatSLE(zone.fee)}
+              {zone.name} · {zone.fee === 0 ? "Free (SLE 0.00)" : formatSLE(zone.fee)}
             </option>
           ))}
         </select>

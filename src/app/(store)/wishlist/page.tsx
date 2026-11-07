@@ -39,7 +39,7 @@ export default async function WishlistPage() {
         </Reveal>
         <Reveal delay={0.08}>
           <h1 className="mt-6 font-display text-[clamp(2.6rem,6vw,4.4rem)] font-light leading-[1.02] tracking-[-0.01em] text-ink">
-            Nothing yet —{" "}
+            Nothing yet,{" "}
             <em className="italic text-brand-gold">an empty journal.</em>
           </h1>
         </Reveal>

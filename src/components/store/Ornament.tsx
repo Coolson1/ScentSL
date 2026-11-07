@@ -80,7 +80,7 @@ export function Ornament({
     );
   }
 
-  // botanical — open magnolia-ish branch, single long stroke + 3 blooms
+  // botanical: open magnolia-ish branch, single long stroke + 3 blooms
   return (
     <svg viewBox="0 0 320 220" {...common}>
       <path d="M10 200 C 80 170, 130 130, 180 80 C 220 40, 260 25, 310 20" />
