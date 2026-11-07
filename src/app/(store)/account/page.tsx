@@ -63,7 +63,7 @@ export default async function AccountPage() {
                   <span className="inline-block h-px flex-1 bg-ink/15" />
                 </header>
                 <dl className="grid gap-8 sm:grid-cols-2">
-                  <FactRow label="Name" value={user.name ?? "—"} />
+                  <FactRow label="Name" value={user.name ?? "Not set"} />
                   <FactRow label="Email" value={user.email} />
                   <FactRow
                     label="Sign-in"
@@ -94,7 +94,7 @@ export default async function AccountPage() {
                 </header>
                 {user.addresses.length === 0 ? (
                   <p className="font-serif text-base italic text-ink/65">
-                    No addresses yet — they will be kept here after your first
+                    No addresses yet. They will be kept here after your first
                     chapter is sent.
                   </p>
                 ) : (

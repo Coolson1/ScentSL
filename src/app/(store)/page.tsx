@@ -111,7 +111,7 @@ export default async function HomePage() {
                 Chapter II · Most Popular
               </p>
               <h2 className="mt-3 font-display text-[clamp(2.4rem,5vw,4rem)] font-light leading-[0.95] tracking-[-0.01em] text-ink">
-                Curated <em className="italic text-brand-gold">best sellers</em> & coveted scents
+                Most loved <em className="italic text-brand-gold">best sellers</em> &amp; signature scents
               </h2>
             </div>
             <Link

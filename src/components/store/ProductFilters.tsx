@@ -143,7 +143,7 @@ export function ProductFilters({ categories }: { categories: Category[] }) {
         onClick={clearAll}
         className="text-[10px] uppercase tracking-[0.32em] text-ink/55 transition-colors hover:text-ink"
       >
-        — Clear all filters
+        Clear all filters
       </button>
     </aside>
   );

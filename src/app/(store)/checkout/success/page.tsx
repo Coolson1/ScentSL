@@ -41,7 +41,7 @@ export default async function CheckoutSuccessPage({
     );
   }
 
-  // ── Read order from DB — never trust the redirect URL alone ──
+  // Read order from DB: never trust the redirect URL alone
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
@@ -72,7 +72,7 @@ export default async function CheckoutSuccessPage({
   const isGuest = !session?.user?.id || order.userId !== session.user.id;
   const orderRef = (order.orderNumber || order.id).slice(-8).toUpperCase();
 
-  // ── Payment FAILED / CANCELLED / EXPIRED ─────────────────
+  // Payment FAILED / CANCELLED / EXPIRED
   if (
     paymentStatus === "FAILED" ||
     paymentStatus === "CANCELLED" ||
@@ -87,14 +87,14 @@ export default async function CheckoutSuccessPage({
       FAILED:
         "Your payment was not successful. No funds have been taken. You may try again.",
       CANCELLED:
-        "You cancelled the payment. Your order is still saved — you can try paying again.",
+        "You cancelled the payment. Your order is still saved, so you can try paying again.",
       EXPIRED:
         "Your payment session has expired. Please restart the payment to complete your order.",
     };
     return (
       <div className="mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
         <p className="text-[10px] uppercase tracking-[0.5em] text-brand-rose">
-          — A small note —
+          A small note
         </p>
         <h1 className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] text-ink">
           {titles[paymentStatus]}
@@ -121,12 +121,12 @@ export default async function CheckoutSuccessPage({
     );
   }
 
-  // ── Payment PENDING / PROCESSING — show holding state ─────
+  // Payment PENDING / PROCESSING: show holding state
   if (paymentStatus === "PENDING" || paymentStatus === "PROCESSING") {
     return (
       <div className="mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
         <p className="text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-          — Almost there —
+          Almost there
         </p>
         <h1 className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] text-ink">
           Confirming your payment
@@ -147,7 +147,7 @@ export default async function CheckoutSuccessPage({
     );
   }
 
-  // ── Payment PAID — show full success UI ───────────────────
+  // Payment PAID: show full success UI
   return (
     <div className="relative isolate overflow-hidden pb-32 pt-16 lg:pt-24">
       <Ornament
@@ -164,14 +164,14 @@ export default async function CheckoutSuccessPage({
           <div className="flex flex-col items-center text-center">
             <DrawnSeal />
             <p className="mt-7 text-[10px] uppercase tracking-[0.5em] text-brand-gold">
-              — Thank you —
+              Thank you
             </p>
             <h1 className="mt-5 font-display text-[clamp(2.8rem,6.5vw,4.8rem)] font-light leading-[0.96] tracking-[-0.015em] text-ink">
               Your letter is{" "}
               <em className="italic text-brand-gold">on its way.</em>
             </h1>
             <p className="mt-6 font-serif text-lg leading-relaxed text-ink/75">
-              The maison has received your order. A confirmation has been sent —
+              The maison has received your order. A confirmation has been sent,
               and the bottles are being wrapped now.
             </p>
             <p className="mt-7 text-[10px] uppercase tracking-[0.4em] text-ink/55">
@@ -301,7 +301,7 @@ export default async function CheckoutSuccessPage({
   );
 }
 
-// ── Sub-components ────────────────────────────────────────
+// Sub-components
 
 function Row({
   label,
@@ -331,7 +331,7 @@ function Row({
 }
 
 function DrawnSeal() {
-  // SVG seal — the dasharray draws on mount via the keyframe below
+  // SVG seal: the dasharray draws on mount via the keyframe below
   return (
     <svg
       viewBox="0 0 120 120"
@@ -383,7 +383,7 @@ function ErrorView({
   return (
     <div className="mx-auto max-w-xl px-5 py-24 text-center sm:px-8">
       <p className="text-[10px] uppercase tracking-[0.5em] text-brand-rose">
-        — A small note —
+        A small note
       </p>
       <h1 className="mt-5 font-display text-[clamp(2.2rem,5vw,3.6rem)] font-light leading-[1.02] text-ink">
         {title}
@@ -404,7 +404,7 @@ function ErrorView({
   );
 }
 
-/** Client component — rendered only when paymentStatus is FAILED/CANCELLED/EXPIRED */
+/** Client component: rendered only when paymentStatus is FAILED/CANCELLED/EXPIRED */
 function RetryPaymentButton({ orderId }: { orderId: string }) {
   // This is a server component file, so we render a plain anchor that hits the retry API.
   // A full client button with fetch is in a separate component if needed.

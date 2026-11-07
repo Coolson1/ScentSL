@@ -27,9 +27,9 @@ export function PaymentStatusPoller({ orderId, initialStatus }: Props) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Already confirmed — no polling needed
+    // Already confirmed: no polling needed
     if (status === "PAID") return;
-    // Terminal failure states — no polling needed
+    // Terminal failure states: no polling needed
     if (status === "FAILED" || status === "CANCELLED" || status === "EXPIRED") return;
 
     function poll() {
@@ -52,7 +52,7 @@ export function PaymentStatusPoller({ orderId, initialStatus }: Props) {
           }
         })
         .catch(() => {
-          // Network error — keep polling
+          // Network error: keep polling
         });
     }
 
@@ -68,7 +68,7 @@ export function PaymentStatusPoller({ orderId, initialStatus }: Props) {
     return (
       <div className="mt-8 rounded border border-ink/15 bg-parchment-soft p-6 text-center">
         <p className="text-[10px] uppercase tracking-[0.4em] text-ink/50">
-          — A note —
+          A note
         </p>
         <p className="mt-3 font-serif text-base leading-relaxed text-ink/75">
           Payment verification is taking longer than expected. If you were
@@ -82,7 +82,7 @@ export function PaymentStatusPoller({ orderId, initialStatus }: Props) {
     return null; // Parent handles these states with a static message
   }
 
-  // PENDING or PROCESSING — show spinner
+  // PENDING or PROCESSING: show spinner
   return (
     <div className="mt-8 flex flex-col items-center gap-4 rounded border border-brand-gold/20 bg-parchment-soft p-8 text-center">
       <div

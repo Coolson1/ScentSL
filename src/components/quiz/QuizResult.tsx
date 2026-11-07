@@ -83,7 +83,7 @@ export function QuizResult({
           className="flex flex-col items-center max-w-md"
         >
           <p className="font-display text-xl italic text-ink/80 sm:text-2xl">
-            Curating your bespoke perfume recommendations...
+            Finding your signature perfume recommendations...
           </p>
           <motion.div
             className="mt-6 h-0.5 w-36 bg-gradient-to-r from-transparent via-brand-gold to-transparent"

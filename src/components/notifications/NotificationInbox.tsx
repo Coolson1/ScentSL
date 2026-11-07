@@ -108,7 +108,7 @@ export function NotificationInbox({
       {isOpen && (
         <div
           className={cn(
-            "fixed inset-x-4 top-16 sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:w-96 rounded-2xl border border-ink/15 bg-parchment-soft p-4 shadow-2xl backdrop-blur-md z-50 animate-in fade-in duration-200",
+            "fixed inset-x-4 top-[calc(4.25rem+var(--pwa-top-offset,0px))] sm:absolute sm:inset-x-auto sm:top-full sm:mt-2 sm:w-96 rounded-2xl border border-ink/15 bg-parchment-soft p-4 shadow-2xl backdrop-blur-md z-50 animate-in fade-in duration-200",
             align === "left" ? "sm:left-0" : "sm:right-0"
           )}
         >

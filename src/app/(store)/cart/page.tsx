@@ -44,7 +44,7 @@ export default async function CartPage() {
         </Reveal>
         <Reveal delay={0.16}>
           <p className="mt-6 max-w-md font-serif text-lg leading-relaxed text-ink/70">
-            Nothing has been kept inside yet. Wander the archive — every
+            Nothing has been kept inside yet. Explore the archive, where every
             fragrance is a small letter waiting to be opened.
           </p>
         </Reveal>
@@ -135,7 +135,7 @@ export default async function CartPage() {
               href="/products"
               className="mt-5 block text-center text-[10px] uppercase tracking-[0.32em] text-ink/55 underline-offset-4 transition-colors hover:text-ink hover:underline"
             >
-              — Continue browsing the archive —
+              Continue browsing the archive
             </Link>
           </aside>
         </div>

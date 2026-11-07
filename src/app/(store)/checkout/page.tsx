@@ -64,7 +64,7 @@ export default async function CheckoutPage({
           </Reveal>
           <Reveal delay={0.1}>
             <h1 className="mt-8 font-display text-[clamp(2.8rem,6.5vw,5rem)] font-light leading-[0.95] tracking-[-0.015em] text-ink">
-              The address book <em className="italic text-brand-gold">— almost there.</em>
+              The address book, <em className="italic text-brand-gold">almost there.</em>
             </h1>
           </Reveal>
         </div>

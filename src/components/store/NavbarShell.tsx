@@ -21,6 +21,8 @@ export function NavbarShell({
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (isStandalone) document.documentElement.dataset.standalone = "true";
     const handler = () => setScrolled(window.scrollY > 24);
     handler();
     window.addEventListener("scroll", handler, { passive: true });
@@ -29,7 +31,7 @@ export function NavbarShell({
 
   return (
     <header
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      style={{ paddingTop: "var(--pwa-top-offset, env(safe-area-inset-top, 0px))", paddingLeft: "env(safe-area-inset-left, 0px)", paddingRight: "env(safe-area-inset-right, 0px)" }}
       className={`sticky top-0 z-40 border-b transition-all duration-300 ease-[cubic-bezier(0.65,0,0.35,1)] ${
         scrolled
           ? "border-ink/12 bg-parchment/92 backdrop-blur-md"
@@ -37,8 +39,8 @@ export function NavbarShell({
       }`}
     >
       <div
-        className={`mx-auto flex max-w-[1400px] items-center justify-between gap-3 sm:gap-6 px-4 sm:px-5 md:px-8 lg:px-12 transition-[height] duration-300 ${
-          scrolled ? "h-12 sm:h-14" : "h-16 sm:h-20"
+        className={`mx-auto flex max-w-[1400px] items-center justify-between gap-2.5 sm:gap-6 px-4 sm:px-6 md:px-8 lg:px-12 transition-[height] duration-300 ${
+          scrolled ? "h-14 sm:h-16" : "h-16 sm:h-20"
         }`}
       >
         {/* left nav */}
@@ -51,7 +53,7 @@ export function NavbarShell({
         {/* center logo & wordmark */}
         <Link
           href="/"
-          aria-label="ScentSL — home"
+          aria-label="ScentSL Home"
           className="group flex items-center gap-2.5 sm:gap-3"
         >
           <div className="relative overflow-hidden rounded-full border border-brand-gold/40 shadow-sm transition-transform duration-300 group-hover:scale-105">
@@ -66,7 +68,7 @@ export function NavbarShell({
             />
           </div>
           <div className="flex flex-col items-center">
-            <span className="font-display text-[1.35rem] font-light tracking-[0.18em] text-ink transition-colors duration-300 group-hover:text-brand-gold sm:text-[1.6rem]">
+            <span className="font-display text-[1.2rem] font-light tracking-[0.16em] text-ink transition-colors duration-300 group-hover:text-brand-gold sm:text-[1.6rem] sm:tracking-[0.18em]">
               SCENTSL
             </span>
 
@@ -74,7 +76,7 @@ export function NavbarShell({
         </Link>
 
         {/* right cluster */}
-        <div className="flex flex-1 items-center justify-end gap-3 sm:gap-5 md:gap-6">
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-5 md:gap-6">
           <NavbarSearch />
           <NotificationInbox />
 
@@ -105,7 +107,7 @@ export function NavbarShell({
       </div>
 
       {/* mobile nav bar */}
-      <nav className="flex items-center justify-between px-6 py-2 border-t border-ink/8 md:hidden">
+      <nav className="flex items-center justify-between px-4 sm:px-6 py-2 border-t border-ink/8 md:hidden">
         {NAV_LINKS.map((link) => (
           <NavLink key={link.href} {...link} compact />
         ))}

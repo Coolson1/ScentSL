@@ -80,7 +80,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </div>
           <div className="mt-1 sm:mt-2">
             <span className="font-display text-xs font-normal tabular-nums text-ink/90 sm:text-base md:text-lg">
-              {price === null ? "—" : formatSLE(price)}
+              {price === null ? "Unavailable" : formatSLE(price)}
             </span>
           </div>
         </div>

@@ -58,8 +58,8 @@ export async function sendWebPush(
   const payloadString = JSON.stringify({
     title: payload.title,
     body: payload.message,
-    icon: payload.icon || "/icons/icon-192.png",
-    badge: payload.badge || "/icons/icon-192.png",
+    icon: payload.icon || "/icons/notification-icon-192.png",
+    badge: payload.badge || "/icons/notification-badge.png",
     tag: payload.tag,
     data: {
       url: payload.url || "/",

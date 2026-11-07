@@ -74,7 +74,7 @@ export default async function AdminDiscountsPage() {
                       : formatSLE(c.value)}
                   </TableCell>
                   <TableCell>
-                    {c.minOrder ? formatSLE(c.minOrder) : "—"}
+                    {c.minOrder ? formatSLE(c.minOrder) : "None"}
                   </TableCell>
                   <TableCell>
                     {c.usedCount}
@@ -87,7 +87,7 @@ export default async function AdminDiscountsPage() {
                           month: "short",
                           year: "numeric",
                         })
-                      : "—"}
+                      : "Never"}
                   </TableCell>
                   <TableCell>
                     <CouponActiveToggle

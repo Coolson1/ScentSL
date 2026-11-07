@@ -163,7 +163,7 @@ export default async function AdminOrderDetailPage({
               {order.user?.name ?? "Guest customer"}
             </p>
             <p className="text-muted-foreground">
-              {order.user?.email ?? order.guestEmail ?? "—"}
+              {order.user?.email ?? order.guestEmail ?? "Not provided"}
             </p>
             {order.user && (
               <p className="text-xs text-muted-foreground">

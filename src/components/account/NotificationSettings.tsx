@@ -198,7 +198,7 @@ export function NotificationSettings() {
           <div>
             <h5 className="font-display text-sm font-medium text-ink">Personalized Recommendations</h5>
             <p className="font-serif text-xs text-ink/65">
-              Curated scent recommendations tailored to your wishlist items and previous purchases.
+              Personal scent recommendations tailored to your wishlist items and previous purchases.
             </p>
           </div>
           <input

@@ -169,7 +169,7 @@ export function InventoryTable({ rows }: { rows: Row[] }) {
                     </TableCell>
                     <TableCell>{r.size}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {r.sku ?? "—"}
+                      {r.sku ?? "N/A"}
                     </TableCell>
                     <TableCell>
                       <Badge className={status.className}>{status.label}</Badge>

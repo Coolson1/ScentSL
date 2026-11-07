@@ -38,11 +38,11 @@ export async function POST(req: Request) {
       from: "ScentSL Contact Form <onboarding@resend.dev>",
       to: BUSINESS_EMAIL,
       replyTo: BUSINESS_EMAIL,
-      subject: `New message from ${name.trim()} — ScentSL Support`,
+      subject: `New message from ${name.trim()} | ScentSL Support`,
       html: `
         <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; padding: 32px; color: #1a1a1a;">
           <h2 style="font-size: 22px; font-weight: 400; letter-spacing: 0.05em; border-bottom: 1px solid #c9a96e; padding-bottom: 12px; margin-bottom: 24px; color: #c9a96e;">
-            New Support Message — ScentSL
+            New Support Message | ScentSL
           </h2>
 
           <table style="width: 100%; border-collapse: collapse;">

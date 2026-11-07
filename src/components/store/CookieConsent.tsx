@@ -104,20 +104,20 @@ export function CookieConsent() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col gap-3 pt-1">
           <Link
             href="/cookie-policy"
-            className="text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.28em] text-ink/70 underline-offset-4 hover:text-brand-gold hover:underline focus-visible:outline-2 focus-visible:outline-brand-gold self-start sm:self-center"
+            className="text-[10px] sm:text-[11px] uppercase tracking-[0.22em] sm:tracking-[0.28em] text-ink/70 underline-offset-4 hover:text-brand-gold hover:underline focus-visible:outline-2 focus-visible:outline-brand-gold self-start"
           >
             Cookie Policy
           </Link>
 
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-3 gap-2 sm:gap-2.5 w-full">
             {!showPreferences ? (
               <button
                 type="button"
                 onClick={() => setShowPreferences(true)}
-                className="flex-1 sm:flex-initial text-center rounded-full border border-ink/20 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
+                className="inline-flex h-9 sm:h-10 w-full items-center justify-center whitespace-nowrap rounded-full border border-ink/20 bg-transparent px-2 sm:px-4 text-center text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.22em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
               >
                 Customize
               </button>
@@ -125,7 +125,7 @@ export function CookieConsent() {
               <button
                 type="button"
                 onClick={() => saveConsent(analyticsEnabled ? "all" : "necessary")}
-                className="flex-1 sm:flex-initial text-center rounded-full border border-ink/20 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
+                className="inline-flex h-9 sm:h-10 w-full items-center justify-center whitespace-nowrap rounded-full border border-ink/20 bg-transparent px-2 sm:px-4 text-center text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.22em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
               >
                 Save
               </button>
@@ -134,7 +134,7 @@ export function CookieConsent() {
             <button
               type="button"
               onClick={() => saveConsent("necessary")}
-              className="flex-1 sm:flex-initial text-center rounded-full border border-ink/20 bg-transparent px-3 py-1.5 sm:px-4 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
+              className="inline-flex h-9 sm:h-10 w-full items-center justify-center whitespace-nowrap rounded-full border border-ink/20 bg-transparent px-2 sm:px-4 text-center text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.22em] text-ink transition-colors hover:border-ink hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
             >
               Necessary Only
             </button>
@@ -142,7 +142,7 @@ export function CookieConsent() {
             <button
               type="button"
               onClick={() => saveConsent("all")}
-              className="flex-1 sm:flex-initial text-center rounded-full bg-ink px-4 py-1.5 sm:px-5 sm:py-2 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.28em] text-parchment transition-colors hover:bg-brand-gold hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
+              className="inline-flex h-9 sm:h-10 w-full items-center justify-center whitespace-nowrap rounded-full border border-ink bg-ink px-2 sm:px-4 text-center text-[9px] sm:text-[10px] uppercase tracking-[0.12em] sm:tracking-[0.22em] text-parchment transition-colors hover:border-brand-gold hover:bg-brand-gold hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold"
             >
               Accept All
             </button>

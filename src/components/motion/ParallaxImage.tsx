@@ -10,7 +10,7 @@ import { useRef, type ReactNode } from "react";
 
 type ParallaxImageProps = {
   children: ReactNode;
-  /** % of element height to drift, 0–20 typical */
+  /** % of element height to drift, 0 to 20 typical */
   amount?: number;
   className?: string;
 };

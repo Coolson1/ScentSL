@@ -22,7 +22,7 @@ export function EditorialSplit() {
           </div>
 
           <p className="absolute -bottom-5 left-4 text-[10px] uppercase tracking-[0.32em] text-ink/55">
-            ScentSL — crafted for those who live by feeling
+            ScentSL · Crafted for those who live by feeling
           </p>
         </Reveal>
 
@@ -40,8 +40,8 @@ export function EditorialSplit() {
           <Reveal delay={0.22} className="mt-7">
             <div className="space-y-4 font-serif text-lg leading-relaxed text-ink/75">
               <p>
-                ScentSL brings together the world&apos;s most coveted perfumes —
-                each bottle sourced with care and curated for those who treat
+                ScentSL brings together the world&apos;s most coveted perfumes.
+                Each bottle is sourced with care and chosen for those who treat
                 fragrance as a personal signature.
               </p>
               <p>

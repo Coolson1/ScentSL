@@ -174,7 +174,7 @@ function NavbarSearchInner() {
 
       {/* Mobile Search Overlay Bar */}
       {isMobileOpen && (
-        <div className="fixed inset-x-3 top-16 sm:top-20 z-50 mx-auto max-w-md rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-2xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
+        <div style={{ top: "calc(4.25rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px)))" }} className="fixed inset-x-3 z-50 mx-auto max-w-md rounded-2xl border border-ink/20 bg-parchment-soft p-3 shadow-2xl backdrop-blur-md md:hidden animate-in fade-in duration-200">
           <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <SearchIcon className="size-4 text-ink/50 shrink-0" />
             <input

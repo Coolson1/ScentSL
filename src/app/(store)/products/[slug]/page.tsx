@@ -14,7 +14,7 @@ import { Ornament } from "@/components/store/Ornament";
 
 export const revalidate = 30;
 
-// Three-tier fragrance pyramid — decorative editorial detail.
+// Three-tier fragrance pyramid: decorative editorial detail.
 // Could be data-driven later; for now we synthesize sensible defaults
 // from the category and product name.
 function notesPyramid(productName: string, categoryName: string) {
@@ -280,7 +280,7 @@ export default async function ProductDetailPage({
                 </ul>
               ) : (
                 <p className="font-serif text-base italic text-ink/55">
-                  No letters yet — the archive is quiet.
+                  No letters yet. The archive is quiet.
                 </p>
               )}
             </div>
@@ -386,7 +386,7 @@ function NoteRow({
             accent ? "text-brand-gold" : "text-ink/55"
           }`}
         >
-          — {label} —
+          {label} Notes
         </p>
         <p className="font-display text-[clamp(1.6rem,3.5vw,2.4rem)] font-light italic leading-tight text-ink">
           {notes.join(" · ")}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Ornament } from "@/components/store/Ornament";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — ScentSL Maison",
+  title: "Privacy Policy | ScentSL Maison",
   description:
     "Learn how ScentSL collects, protects, and respects your personal data in compliance with GDPR, CCPA, and Sierra Leone privacy standards.",
 };

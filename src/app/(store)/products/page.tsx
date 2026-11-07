@@ -82,7 +82,7 @@ export default async function ProductsPage({
               ) : activeCategory ? (
                 <>
                   {activeCategory.name}{" "}
-                  <em className="italic text-brand-gold">— a chapter</em>
+                  <em className="italic text-brand-gold">chapter</em>
                 </>
               ) : params.gender ? (
                 <>
@@ -91,7 +91,7 @@ export default async function ProductsPage({
                     : params.gender === "WOMEN"
                       ? "Women's Fragrances"
                       : "Unisex Fragrances"}{" "}
-                  <em className="italic text-brand-gold">— collection</em>
+                  <em className="italic text-brand-gold">collection</em>
                 </>
               ) : (
                 <>
