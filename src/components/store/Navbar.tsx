@@ -19,7 +19,7 @@ async function loadHeaderState() {
 
     return { session, cartCount };
   } catch (error) {
-    console.error("[Navbar] Failed to load header state:", error);
+    console.warn("[Navbar] Failed to load header state:", error instanceof Error ? error.message : String(error));
     return { session: null, cartCount: 0 };
   }
 }

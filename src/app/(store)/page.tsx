@@ -15,54 +15,67 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 async function loadHomepageData() {
-  const [featured, popular, categories, menProduct, womenProduct, unisexProduct] = await withRetry(() =>
-    Promise.all([
-      prisma.product.findMany({
-        where: { isFeatured: true, isActive: true },
-        include: {
-          variants: { select: { price: true, stock: true } },
-          category: { select: { name: true } },
-        },
-        take: 8,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.product.findMany({
-        where: { isPopular: true, isActive: true },
-        include: {
-          variants: { select: { price: true, stock: true } },
-          category: { select: { name: true } },
-        },
-        take: 8,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.category.findMany({
-        where: { isFeatured: true },
-        orderBy: { name: "asc" },
-      }),
-      prisma.product.findFirst({
-        where: { gender: "MEN", isActive: true },
-        select: { images: true },
-      }),
-      prisma.product.findFirst({
-        where: { gender: "WOMEN", isActive: true },
-        select: { images: true },
-      }),
-      prisma.product.findFirst({
-        where: { gender: "UNISEX", isActive: true },
-        select: { images: true },
-      }),
-    ]),
-  );
-  return {
-    featured,
-    popular,
-    categories,
-    genderImages: {
-      men: menProduct?.images[0] ?? null,
-      women: womenProduct?.images[0] ?? null,
-      unisex: unisexProduct?.images[0] ?? null,
-    },
-  };
+  try {
+    const [featured, popular, categories, menProduct, womenProduct, unisexProduct] = await withRetry(() =>
+      Promise.all([
+        prisma.product.findMany({
+          where: { isFeatured: true, isActive: true },
+          include: {
+            variants: { select: { price: true, stock: true } },
+            category: { select: { name: true } },
+          },
+          take: 8,
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.product.findMany({
+          where: { isPopular: true, isActive: true },
+          include: {
+            variants: { select: { price: true, stock: true } },
+            category: { select: { name: true } },
+          },
+          take: 8,
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.category.findMany({
+          where: { isFeatured: true },
+          orderBy: { name: "asc" },
+        }),
+        prisma.product.findFirst({
+          where: { gender: "MEN", isActive: true },
+          select: { images: true },
+        }),
+        prisma.product.findFirst({
+          where: { gender: "WOMEN", isActive: true },
+          select: { images: true },
+        }),
+        prisma.product.findFirst({
+          where: { gender: "UNISEX", isActive: true },
+          select: { images: true },
+        }),
+      ]),
+    );
+    return {
+      featured,
+      popular,
+      categories,
+      genderImages: {
+        men: menProduct?.images[0] ?? null,
+        women: womenProduct?.images[0] ?? null,
+        unisex: unisexProduct?.images[0] ?? null,
+      },
+    };
+  } catch (err) {
+    console.warn(
+      "[HomePage] Database temporarily unreachable, rendering fallback:",
+      err instanceof Error ? err.message : String(err),
+    );
+    return {
+      featured: [],
+      popular: [],
+      categories: [],
+      genderImages: { men: null, women: null, unisex: null },
+    };
+  }
 }
 
 export default async function HomePage() {

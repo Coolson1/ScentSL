@@ -53,12 +53,23 @@ export async function getCartWithItems(identity: Identity) {
 }
 
 export async function getCartItemCount(identity: Identity) {
-  const cart = await withRetry(() =>
-    prisma.cart.findUnique({
-      where: whereFor(identity) ?? { id: "__none__" },
-      include: { items: { select: { quantity: true } } },
-    }),
-  );
-  if (!cart) return 0;
-  return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const where = whereFor(identity);
+  if (!where) return 0;
+
+  try {
+    const cart = await withRetry(() =>
+      prisma.cart.findUnique({
+        where,
+        include: { items: { select: { quantity: true } } },
+      }),
+    );
+    if (!cart) return 0;
+    return cart.items.reduce((sum, item) => sum + item.quantity, 0);
+  } catch (error) {
+    console.warn(
+      "[Cart] Could not fetch cart item count, defaulting to 0:",
+      error instanceof Error ? error.message : String(error),
+    );
+    return 0;
+  }
 }

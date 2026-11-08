@@ -14,7 +14,7 @@ export default async function StoreLayout({
   try {
     await mergeGuestCart();
   } catch (error) {
-    console.error("[StoreLayout] mergeGuestCart failed:", error);
+    console.warn("[StoreLayout] mergeGuestCart failed:", error instanceof Error ? error.message : String(error));
   }
 
   return (
