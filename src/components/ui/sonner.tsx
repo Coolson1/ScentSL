@@ -11,6 +11,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      offset={{
+        top: "calc(5.5rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px)))",
+        right: "max(1.25rem, env(safe-area-inset-right, 0px))",
+        left: "max(1.25rem, env(safe-area-inset-left, 0px))",
+        bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
+      }}
+      mobileOffset={{
+        top: "calc(6.5rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px)))",
+        right: "max(1rem, env(safe-area-inset-right, 0px))",
+        left: "max(1rem, env(safe-area-inset-left, 0px))",
+        bottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))",
+      }}
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />
@@ -38,7 +50,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast pointer-events-auto shadow-xl",
+          closeButton: "pointer-events-auto",
         },
       }}
       {...props}

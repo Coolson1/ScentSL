@@ -11,6 +11,83 @@ export function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+async function resolveVapidPublicKey(): Promise<string> {
+  let vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+  if (!vapidPublicKey) {
+    try {
+      const keyRes = await fetch("/api/push/subscribe", {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (keyRes.ok) {
+        const keyData = await keyRes.json();
+        vapidPublicKey = keyData.publicKey || "";
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return vapidPublicKey.trim();
+}
+
+async function ensureServiceWorkerRegistration(): Promise<ServiceWorkerRegistration> {
+  let registration = await navigator.serviceWorker.getRegistration("/");
+  if (!registration) {
+    registration = await navigator.serviceWorker.getRegistration();
+  }
+  if (!registration) {
+    registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  }
+  return await navigator.serviceWorker.ready;
+}
+
+async function ensureBrowserSubscription(
+  registration: ServiceWorkerRegistration
+): Promise<{ subscription: PushSubscription | null; error?: string }> {
+  let subscription = await registration.pushManager.getSubscription();
+  if (subscription) {
+    return { subscription };
+  }
+
+  const vapidPublicKey = await resolveVapidPublicKey();
+  if (!vapidPublicKey) {
+    return {
+      subscription: null,
+      error: "Push configuration key is missing on the server.",
+    };
+  }
+
+  const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
+
+  try {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedKey as unknown as BufferSource,
+    });
+    return { subscription };
+  } catch (subErr) {
+    // Handle case where a stale subscription with a different applicationServerKey exists
+    try {
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        await existing.unsubscribe();
+      }
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey as unknown as BufferSource,
+      });
+      return { subscription };
+    } catch (retryErr) {
+      console.warn("[Push] pushManager.subscribe notice:", subErr, retryErr);
+      const subMsg = subErr instanceof Error ? subErr.message : String(subErr);
+      return {
+        subscription: null,
+        error: `Push service subscription failed: ${subMsg}`,
+      };
+    }
+  }
+}
+
 /**
  * Register service worker and subscribe browser to push notifications.
  * Works for both anonymous visitors and authenticated users.
@@ -22,6 +99,7 @@ export async function requestAndSubscribePush(): Promise<{
 }> {
   if (
     typeof window === "undefined" ||
+    !("Notification" in window) ||
     !("serviceWorker" in navigator) ||
     !("PushManager" in window)
   ) {
@@ -32,52 +110,43 @@ export async function requestAndSubscribePush(): Promise<{
   }
 
   try {
-    const permission = await Notification.requestPermission();
+    let permission = Notification.permission;
     if (permission !== "granted") {
-      return { success: false, error: `Notification permission ${permission}.` };
+      permission = await Notification.requestPermission();
+    }
+    if (permission !== "granted") {
+      return {
+        success: false,
+        error:
+          permission === "denied"
+            ? "Notifications are blocked in your browser settings. Please allow notifications for this site in your browser address bar and try again."
+            : `Notification permission ${permission}.`,
+      };
     }
 
-    let registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      registration = await navigator.serviceWorker.register("/sw.js");
-    }
-    registration = await navigator.serviceWorker.ready;
+    const registration = await ensureServiceWorkerRegistration();
+    const { subscription, error } = await ensureBrowserSubscription(registration);
 
-    // Check if browser already has an active push subscription
-    let subscription = await registration.pushManager.getSubscription();
-
-    let vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidPublicKey) {
-      try {
-        const keyRes = await fetch("/api/push/subscribe", { method: "GET" });
-        if (keyRes.ok) {
-          const keyData = await keyRes.json();
-          vapidPublicKey = keyData.publicKey;
-        }
-      } catch {
-        // Fallback
-      }
+    if (!subscription) {
+      return {
+        success: false,
+        error: error || "Could not create a push subscription on this device.",
+      };
     }
 
-    if (!subscription && vapidPublicKey) {
-      try {
-        const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedKey as unknown as BufferSource,
-        });
-      } catch (subErr) {
-        console.warn("[Push] pushManager.subscribe notice:", subErr);
-        const subMsg = subErr instanceof Error ? subErr.message : String(subErr);
-        return { success: false, error: `Push service subscription failed: ${subMsg}` };
-      }
+    const saved = await sendSubscriptionToBackend(subscription);
+    if (!saved) {
+      return {
+        success: false,
+        error: "Failed to register your notification subscription with the server.",
+      };
     }
 
-    if (subscription) {
-      await sendSubscriptionToBackend(subscription);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("scentsl:push-subscribed"));
     }
 
-    return { success: true, subscription: subscription || undefined };
+    return { success: true, subscription };
   } catch (err) {
     console.error("[Push] Subscription error:", err);
     return {
@@ -110,6 +179,7 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription):
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      cache: "no-store",
     });
 
     return res.ok;
@@ -120,12 +190,14 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription):
 }
 
 /**
- * Sync existing browser push subscription with backend.
+ * Sync existing browser push subscription with backend, or automatically create one
+ * if Notification.permission is already "granted".
  * Ensures active=true and associates current session's userId if authenticated.
  */
 export async function syncPushSubscriptionWithServer(): Promise<boolean> {
   if (
     typeof window === "undefined" ||
+    !("Notification" in window) ||
     !("serviceWorker" in navigator) ||
     !("PushManager" in window) ||
     Notification.permission !== "granted"
@@ -134,16 +206,61 @@ export async function syncPushSubscriptionWithServer(): Promise<boolean> {
   }
 
   try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    const registration = await ensureServiceWorkerRegistration();
+    const { subscription } = await ensureBrowserSubscription(registration);
 
     if (subscription) {
-      return await sendSubscriptionToBackend(subscription);
+      const ok = await sendSubscriptionToBackend(subscription);
+      if (ok && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("scentsl:push-subscribed"));
+      }
+      return ok;
     }
     return false;
   } catch (err) {
     console.error("[Push] Sync error:", err);
     return false;
+  }
+}
+
+/**
+ * Check if this browser currently has an active push subscription and syncs it with the server.
+ */
+export async function checkAndSyncPushSubscription(): Promise<{
+  supported: boolean;
+  permission: NotificationPermission | "unsupported";
+  subscribed: boolean;
+}> {
+  if (
+    typeof window === "undefined" ||
+    !("Notification" in window) ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
+  ) {
+    return { supported: false, permission: "unsupported", subscribed: false };
+  }
+
+  const permission = Notification.permission;
+  if (permission !== "granted") {
+    return { supported: true, permission, subscribed: false };
+  }
+
+  try {
+    const registration = await ensureServiceWorkerRegistration();
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      const synced = await sendSubscriptionToBackend(existing);
+      return { supported: true, permission, subscribed: synced };
+    }
+    // Permission is already granted, so auto-subscribe silently
+    const { subscription } = await ensureBrowserSubscription(registration);
+    if (subscription) {
+      const synced = await sendSubscriptionToBackend(subscription);
+      return { supported: true, permission, subscribed: synced };
+    }
+    return { supported: true, permission, subscribed: false };
+  } catch {
+    return { supported: true, permission, subscribed: false };
   }
 }
 
