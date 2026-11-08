@@ -170,6 +170,24 @@ export async function sendNotificationBroadcast({
         });
         totalSent += res.count;
       }
+      if (!userIds || userIds.length === 0) {
+        const guestSubs = await prisma.pushSubscription.findMany({
+          where: { userId: null, active: true },
+        });
+        if (guestSubs.length > 0) {
+          const guestPayload: PushNotificationPayload = {
+            title,
+            message,
+            url,
+            tag: idempotencyKeyPrefix ? `${idempotencyKeyPrefix}-guest` : `broadcast-${Date.now()}`,
+            data: { type, relatedEntityId },
+          };
+          const guestResults = await Promise.all(
+            guestSubs.map((sub) => sendWebPush(sub, guestPayload))
+          );
+          totalSent += guestResults.filter(Boolean).length;
+        }
+      }
       return { totalSent };
     }
 

@@ -276,3 +276,37 @@ html[data-standalone="true"] {
     --pwa-top-offset: max(calc(env(safe-area-inset-top, 0px) + 0.5rem), 0.75rem);
   }
 }
+
+
+/* Toast Notification (Sonner) Safe-Area & Responsive Positioning */
+[data-sonner-toaster][data-y-position="top"] {
+  top: calc(5.5rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px))) !important;
+}
+
+@media (max-width: 767px) {
+  [data-sonner-toaster][data-y-position="top"] {
+    top: calc(6.5rem + var(--pwa-top-offset, env(safe-area-inset-top, 0px))) !important;
+    left: max(1rem, env(safe-area-inset-left, 0px)) !important;
+    right: max(1rem, env(safe-area-inset-right, 0px)) !important;
+    width: auto !important;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+[data-sonner-toast][data-styled="true"] {
+  padding-right: 2.5rem !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  left: auto !important;
+  right: 0.5rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  border-radius: 9999px !important;
+}

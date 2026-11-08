@@ -1,38 +1,80 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { requestAndSubscribePush, syncPushSubscriptionWithServer, trackUserVisit } from "@/lib/notifications/client";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import {
+  checkAndSyncPushSubscription,
+  requestAndSubscribePush,
+  trackUserVisit,
+} from "@/lib/notifications/client";
 
 export function NotificationOptIn() {
-  const [showPrompt, setShowPrompt] = useState(false);
+  const pathname = usePathname();
+  const [isSupported, setIsSupported] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [permissionState, setPermissionState] = useState<NotificationPermission | "unsupported">("default");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  useEffect(() => {
-    // Automatically track user visit for re-engagement checks
-    trackUserVisit();
+  const verifySubscription = useCallback(async () => {
+    if (typeof window === "undefined") return;
 
-    if (typeof window === "undefined" || !("Notification" in window)) return;
+    // Remove any legacy localStorage flag that previously hid the prompt permanently
+    try {
+      localStorage.removeItem("scentsl_push_opt_in_dismissed");
+    } catch {
+      // Ignore storage access errors
+    }
 
-    // If permission is already granted, sync subscription with server to ensure active=true and associate user session
-    if (Notification.permission === "granted") {
-      syncPushSubscriptionWithServer();
+    const status = await checkAndSyncPushSubscription();
+    setIsSupported(status.supported);
+    setPermissionState(status.permission);
+
+    if (!status.supported) {
+      setIsSubscribed(false);
+      setShowModal(false);
       return;
     }
 
-    if (Notification.permission === "denied") {
-      return;
-    }
-
-    const dismissed = localStorage.getItem("scentsl_push_opt_in_dismissed");
-    if (!dismissed) {
-      // Show prompt smoothly after 3 seconds
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
-      return () => clearTimeout(timer);
+    if (status.subscribed) {
+      setIsSubscribed(true);
+      setShowModal(false);
+    } else {
+      setIsSubscribed(false);
+      setShowModal(true);
     }
   }, []);
+
+  useEffect(() => {
+    trackUserVisit();
+    verifySubscription();
+  }, [pathname, verifySubscription]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleSubscribed = () => {
+      setIsSubscribed(true);
+      setShowModal(false);
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        verifySubscription();
+      }
+    };
+
+    window.addEventListener("scentsl:push-subscribed", handleSubscribed);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("scentsl:push-subscribed", handleSubscribed);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [verifySubscription]);
 
   const handleEnable = async () => {
     setIsSubmitting(true);
@@ -42,64 +84,121 @@ export function NotificationOptIn() {
     setIsSubmitting(false);
 
     if (res.success) {
-      setStatusMessage("Notifications enabled! ✨");
-      setTimeout(() => setShowPrompt(false), 2000);
+      setIsSuccess(true);
+      setIsSubscribed(true);
+      setStatusMessage("Push notifications enabled on this device!");
+      setTimeout(() => {
+        setShowModal(false);
+        setIsSuccess(false);
+      }, 1200);
     } else {
-      setStatusMessage(res.error || "Could not enable notifications.");
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPermissionState(Notification.permission);
+      }
+      setStatusMessage(res.error || "Could not enable push notifications. Please try again.");
     }
   };
 
-  const handleDismiss = () => {
-    setShowPrompt(false);
-    localStorage.setItem("scentsl_push_opt_in_dismissed", "true");
-  };
+  if (!isSupported || (isSubscribed && !isSuccess)) {
+    return null;
+  }
 
-  if (!showPrompt) return null;
+  // If the user temporarily minimized the modal while unsubscribed, keep a persistent floating button so they can subscribe anytime
+  if (!showModal) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setStatusMessage(null);
+          setShowModal(true);
+        }}
+        className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-[65] inline-flex items-center gap-2.5 rounded-full border border-brand-gold bg-ink px-4 py-2.5 text-[10px] uppercase tracking-[0.22em] text-parchment shadow-2xl transition-all hover:bg-brand-gold hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold animate-in fade-in duration-200"
+      >
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-gold opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-brand-gold" />
+        </span>
+        Enable Push Alerts
+      </button>
+    );
+  }
 
   return (
-    <div className="fixed bottom-4 inset-x-4 sm:inset-x-auto sm:bottom-5 sm:right-5 z-50 sm:max-w-sm rounded-2xl border border-brand-gold/30 bg-parchment-soft/95 p-4 sm:p-5 shadow-2xl backdrop-blur-md animate-in slide-in-from-bottom-5 duration-300">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <span className="inline-block rounded-full bg-brand-gold/15 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.25em] text-brand-gold font-medium">
-            Maison ScentSL
-          </span>
-          <h4 className="mt-1 font-display text-base font-medium text-ink">
-            Stay Updated
-          </h4>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="push-opt-in-title"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/60 p-4 backdrop-blur-xs animate-in fade-in duration-200"
+    >
+      <div className="relative w-full max-w-md rounded-2xl border border-brand-gold/40 bg-parchment-soft p-6 sm:p-7 shadow-2xl">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="relative overflow-hidden rounded-full border border-brand-gold/50 shadow-xs shrink-0">
+              <Image
+                src="/scentsl.jpeg"
+                alt="ScentSL Logo"
+                width={40}
+                height={40}
+                className="size-10 rounded-full object-cover"
+              />
+            </div>
+            <div>
+              <span className="inline-block rounded-full bg-brand-gold/15 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.25em] text-brand-gold font-medium">
+                Maison ScentSL
+              </span>
+              <h4
+                id="push-opt-in-title"
+                className="mt-1 font-display text-lg font-medium text-ink"
+              >
+                Enable Push Notifications
+              </h4>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="rounded-full p-1 text-xs text-ink/45 transition-colors hover:text-ink"
+            aria-label="Minimize notification prompt"
+          >
+            ✕
+          </button>
         </div>
-        <button
-          onClick={handleDismiss}
-          className="text-ink/40 hover:text-ink text-xs transition-colors p-1"
-          aria-label="Close"
-        >
-          ✕
-        </button>
-      </div>
 
-      <p className="mt-2 font-serif text-xs leading-relaxed text-ink/75">
-        Receive real-time updates for your order status, payment confirmations, back-in-stock alerts, and exclusive new fragrance releases.
-      </p>
-
-      {statusMessage && (
-        <p className="mt-2 text-xs font-medium text-brand-gold italic">
-          {statusMessage}
+        <p className="mt-3.5 font-serif text-sm leading-relaxed text-ink/80">
+          Subscribe to receive instant push notifications on your device for order confirmations, payment updates, delivery tracking, and new fragrance arrivals.
         </p>
-      )}
 
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          onClick={handleEnable}
-          disabled={isSubmitting}
-          className="flex-1 rounded-full bg-ink px-4 py-2.5 text-[10px] uppercase tracking-[0.22em] text-parchment transition-all hover:bg-brand-gold hover:text-ink disabled:opacity-50 font-medium shadow-xs"
-        >
-          {isSubmitting ? "Enabling..." : "Enable Notifications"}
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-ink/60 hover:text-ink transition-colors"
-        >
-          Maybe Later
-        </button>
+        {permissionState === "denied" && (
+          <div className="mt-3 rounded-xl border border-amber-600/30 bg-amber-500/10 p-3 text-xs leading-relaxed text-ink">
+            Notifications are currently blocked in your browser for this site. Tap the lock or settings icon in your browser address bar, set <strong>Notifications</strong> to <strong>Allow</strong>, then tap the button below.
+          </div>
+        )}
+
+        {statusMessage && (
+          <p
+            className={`mt-3 text-xs font-medium italic ${
+              isSuccess ? "text-emerald-700" : "text-brand-gold"
+            }`}
+          >
+            {statusMessage}
+          </p>
+        )}
+
+        <div className="mt-5 flex flex-col sm:flex-row items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleEnable}
+            disabled={isSubmitting || isSuccess}
+            className="inline-flex h-11 w-full flex-1 items-center justify-center rounded-full bg-ink px-5 text-[10px] uppercase tracking-[0.22em] font-medium text-parchment shadow-sm transition-all hover:bg-brand-gold hover:text-ink disabled:opacity-50"
+          >
+            {isSubmitting
+              ? "Subscribing..."
+              : isSuccess
+              ? "Subscribed!"
+              : "Allow Push Notifications"}
+          </button>
+        </div>
       </div>
     </div>
   );

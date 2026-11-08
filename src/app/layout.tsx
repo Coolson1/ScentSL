@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PwaRegister } from "@/components/pwa/PwaRegister";
+import { NotificationOptIn } from "@/components/notifications/NotificationOptIn";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -83,6 +84,7 @@ export default function RootLayout({
         className="font-sans antialiased min-h-screen bg-parchment text-ink selection:bg-brand-gold/30 selection:text-ink"
       >
         <PwaRegister />
+        <NotificationOptIn />
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster richColors closeButton position="top-right" />
       </body>

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { checkAndSyncPushSubscription, requestAndSubscribePush } from "@/lib/notifications/client";
 
 type NotificationItem = {
   id: string;
@@ -27,6 +28,9 @@ export function NotificationInbox({
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPushSupported, setIsPushSupported] = useState(false);
+  const [isPushSubscribed, setIsPushSubscribed] = useState(true);
+  const [isSubscribingPush, setIsSubscribingPush] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchInbox = async () => {
@@ -48,6 +52,12 @@ export function NotificationInbox({
   useEffect(() => {
     fetchInbox();
 
+    checkAndSyncPushSubscription().then((s) => {
+      setIsPushSupported(s.supported);
+      setIsPushSubscribed(s.subscribed);
+    });
+    const onSub = () => setIsPushSubscribed(true);
+    window.addEventListener("scentsl:push-subscribed", onSub);
     // Poll for unread notification updates every 30 seconds
     const interval = setInterval(fetchInbox, 30000);
 
@@ -60,6 +70,7 @@ export function NotificationInbox({
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       clearInterval(interval);
+      window.removeEventListener("scentsl:push-subscribed", onSub);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
@@ -130,6 +141,26 @@ export function NotificationInbox({
           </div>
 
           <div className="mt-3 max-h-80 overflow-y-auto space-y-2 pr-1">
+            {isPushSupported && !isPushSubscribed && (
+              <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-brand-gold/35 bg-brand-gold/10 p-2.5">
+                <p className="font-serif text-[11px] leading-snug text-ink/85">
+                  Push alerts are off on this device.
+                </p>
+                <button
+                  type="button"
+                  disabled={isSubscribingPush}
+                  onClick={async () => {
+                    setIsSubscribingPush(true);
+                    const res = await requestAndSubscribePush();
+                    setIsSubscribingPush(false);
+                    if (res.success) setIsPushSubscribed(true);
+                  }}
+                  className="shrink-0 rounded-full bg-ink px-3 py-1.5 text-[9px] uppercase tracking-[0.18em] font-medium text-parchment hover:bg-brand-gold hover:text-ink transition-colors disabled:opacity-50"
+                >
+                  {isSubscribingPush ? "Enabling..." : "Enable Push"}
+                </button>
+              </div>
+            )}
             {notifications.length === 0 ? (
               <div className="py-8 text-center text-xs italic text-ink/50 font-serif">
                 No notifications yet.
