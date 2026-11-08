@@ -110,6 +110,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       subscription,
+      userId: validUserId,
     });
   } catch (err) {
     console.error("[API/Push/Subscribe] Error:", err);
@@ -144,7 +145,38 @@ export async function DELETE(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-  return NextResponse.json({ publicKey });
+  try {
+    const { searchParams } = new URL(req.url);
+    const endpoint = searchParams.get("endpoint");
+    let session = null;
+    try {
+      session = await auth();
+    } catch {
+      // Ignore auth error
+    }
+    const userId = session?.user?.id || null;
+
+    if (!endpoint) {
+      return NextResponse.json({ publicKey, subscribed: false, userId });
+    }
+
+    const existing = await prisma.pushSubscription.findUnique({
+      where: { endpoint },
+    });
+
+    if (!existing || !existing.active) {
+      return NextResponse.json({ publicKey, subscribed: false, userId });
+    }
+
+    // If a user is logged in, verify that this subscription is actually linked to this userId
+    if ((userId && existing.userId !== userId) || (!userId && existing.userId !== null)) {
+      return NextResponse.json({ publicKey, subscribed: false, userId });
+    }
+
+    return NextResponse.json({ publicKey, subscribed: true, userId });
+  } catch {
+    return NextResponse.json({ publicKey, subscribed: false });
+  }
 }

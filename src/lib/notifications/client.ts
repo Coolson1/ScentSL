@@ -41,6 +41,27 @@ async function ensureServiceWorkerRegistration(): Promise<ServiceWorkerRegistrat
   return await navigator.serviceWorker.ready;
 }
 
+async function getExistingBrowserSubscriptionFast(): Promise<PushSubscription | null> {
+  try {
+    const subPromise = (async () => {
+      let reg = await navigator.serviceWorker.getRegistration("/");
+      if (!reg) {
+        reg = await navigator.serviceWorker.getRegistration();
+      }
+      if (!reg) return null;
+      return await reg.pushManager.getSubscription();
+    })();
+
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), 1500)
+    );
+
+    return await Promise.race([subPromise, timeoutPromise]);
+  } catch {
+    return null;
+  }
+}
+
 async function ensureBrowserSubscription(
   registration: ServiceWorkerRegistration
 ): Promise<{ subscription: PushSubscription | null; error?: string }> {
@@ -182,7 +203,17 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription):
       cache: "no-store",
     });
 
-    return res.ok;
+    if (!res.ok) return false;
+
+    const data = await res.json().catch(() => ({}));
+    try {
+      const userKey = data?.userId || "guest";
+      localStorage.setItem(`scentsl_push_verified_${userKey}`, subJson.endpoint);
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    return true;
   } catch (err) {
     console.error("[Push] Failed to send subscription to backend:", err);
     return false;
@@ -190,8 +221,7 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription):
 }
 
 /**
- * Sync existing browser push subscription with backend, or automatically create one
- * if Notification.permission is already "granted".
+ * Sync existing browser push subscription with backend.
  * Ensures active=true and associates current session's userId if authenticated.
  */
 export async function syncPushSubscriptionWithServer(): Promise<boolean> {
@@ -224,19 +254,24 @@ export async function syncPushSubscriptionWithServer(): Promise<boolean> {
 }
 
 /**
- * Check if this browser currently has an active push subscription and syncs it with the server.
+ * Check if the current user & browser are actively subscribed in both the browser AND the database,
+ * AND that the current user session has explicitly confirmed push notifications on this device.
  */
 export async function checkAndSyncPushSubscription(): Promise<{
   supported: boolean;
   permission: NotificationPermission | "unsupported";
   subscribed: boolean;
 }> {
-  if (
-    typeof window === "undefined" ||
-    !("Notification" in window) ||
-    !("serviceWorker" in navigator) ||
-    !("PushManager" in window)
-  ) {
+  if (typeof window === "undefined") {
+    return { supported: false, permission: "unsupported", subscribed: false };
+  }
+
+  const supported =
+    "Notification" in window &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window;
+
+  if (!supported) {
     return { supported: false, permission: "unsupported", subscribed: false };
   }
 
@@ -246,19 +281,36 @@ export async function checkAndSyncPushSubscription(): Promise<{
   }
 
   try {
-    const registration = await ensureServiceWorkerRegistration();
-    const existing = await registration.pushManager.getSubscription();
-    if (existing) {
-      const synced = await sendSubscriptionToBackend(existing);
-      return { supported: true, permission, subscribed: synced };
+    const existing = await getExistingBrowserSubscriptionFast();
+    if (!existing) {
+      return { supported: true, permission, subscribed: false };
     }
-    // Permission is already granted, so auto-subscribe silently
-    const { subscription } = await ensureBrowserSubscription(registration);
-    if (subscription) {
-      const synced = await sendSubscriptionToBackend(subscription);
-      return { supported: true, permission, subscribed: synced };
+
+    const res = await fetch(
+      `/api/push/subscribe?endpoint=${encodeURIComponent(existing.endpoint)}`,
+      { method: "GET", cache: "no-store" }
+    );
+    if (!res.ok) {
+      return { supported: true, permission, subscribed: false };
     }
-    return { supported: true, permission, subscribed: false };
+
+    const data = await res.json();
+    const userKey = data?.userId || "guest";
+    let verifiedEndpoint: string | null = null;
+    try {
+      verifiedEndpoint = localStorage.getItem(`scentsl_push_verified_${userKey}`);
+    } catch {
+      // Ignore storage errors
+    }
+
+    const isConfirmedForUser =
+      Boolean(data.subscribed) && verifiedEndpoint === existing.endpoint;
+
+    return {
+      supported: true,
+      permission,
+      subscribed: isConfirmedForUser,
+    };
   } catch {
     return { supported: true, permission, subscribed: false };
   }
@@ -282,6 +334,15 @@ export async function unsubscribePush(): Promise<boolean> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ endpoint }),
       });
+    }
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("scentsl_push_verified_")) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {
+      // Ignore storage errors
     }
     return true;
   } catch (err) {
