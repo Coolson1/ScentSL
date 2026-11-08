@@ -11,7 +11,6 @@ import {
 
 export function NotificationOptIn() {
   const pathname = usePathname();
-  const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,22 +21,24 @@ export function NotificationOptIn() {
   const verifySubscription = useCallback(async () => {
     if (typeof window === "undefined") return;
 
-    // Remove any legacy localStorage flag that previously hid the prompt permanently
+    // Synchronously show modal immediately if not yet confirmed in v3
     try {
       localStorage.removeItem("scentsl_push_opt_in_dismissed");
+      const savedV3 = localStorage.getItem("scentsl_push_optin_v3");
+      const hasPermission =
+        "Notification" in window && Notification.permission === "granted";
+
+      if (!savedV3 || !hasPermission) {
+        setIsSubscribed(false);
+        setShowModal(true);
+      }
     } catch {
-      // Ignore storage access errors
+      setIsSubscribed(false);
+      setShowModal(true);
     }
 
     const status = await checkAndSyncPushSubscription();
-    setIsSupported(status.supported);
     setPermissionState(status.permission);
-
-    if (!status.supported) {
-      setIsSubscribed(false);
-      setShowModal(false);
-      return;
-    }
 
     if (status.subscribed) {
       setIsSubscribed(true);
@@ -99,7 +100,7 @@ export function NotificationOptIn() {
     }
   };
 
-  if (!isSupported || (isSubscribed && !isSuccess)) {
+  if (isSubscribed && !isSuccess) {
     return null;
   }
 

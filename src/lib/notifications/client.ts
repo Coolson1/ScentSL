@@ -36,7 +36,10 @@ async function ensureServiceWorkerRegistration(): Promise<ServiceWorkerRegistrat
     registration = await navigator.serviceWorker.getRegistration();
   }
   if (!registration) {
-    registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    registration = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none",
+    });
   }
   return await navigator.serviceWorker.ready;
 }
@@ -126,7 +129,8 @@ export async function requestAndSubscribePush(): Promise<{
   ) {
     return {
       success: false,
-      error: "Push notifications are not supported in this browser.",
+      error:
+        "To enable push notifications on iPhone/iPad, tap Share and select 'Add to Home Screen', then open ScentSL from your Home Screen.",
     };
   }
 
@@ -208,7 +212,8 @@ export async function sendSubscriptionToBackend(subscription: PushSubscription):
     const data = await res.json().catch(() => ({}));
     try {
       const userKey = data?.userId || "guest";
-      localStorage.setItem(`scentsl_push_verified_${userKey}`, subJson.endpoint);
+      localStorage.setItem("scentsl_push_optin_v3", subJson.endpoint);
+      localStorage.setItem(`scentsl_push_optin_v3_${userKey}`, subJson.endpoint);
     } catch {
       // Ignore localStorage errors
     }
@@ -277,12 +282,22 @@ export async function checkAndSyncPushSubscription(): Promise<{
 
   const permission = Notification.permission;
   if (permission !== "granted") {
+    try {
+      localStorage.removeItem("scentsl_push_optin_v3");
+    } catch {
+      // Ignore storage errors
+    }
     return { supported: true, permission, subscribed: false };
   }
 
   try {
     const existing = await getExistingBrowserSubscriptionFast();
     if (!existing) {
+      try {
+        localStorage.removeItem("scentsl_push_optin_v3");
+      } catch {
+        // Ignore storage errors
+      }
       return { supported: true, permission, subscribed: false };
     }
 
@@ -298,13 +313,21 @@ export async function checkAndSyncPushSubscription(): Promise<{
     const userKey = data?.userId || "guest";
     let verifiedEndpoint: string | null = null;
     try {
-      verifiedEndpoint = localStorage.getItem(`scentsl_push_verified_${userKey}`);
+      verifiedEndpoint = localStorage.getItem(`scentsl_push_optin_v3_${userKey}`);
     } catch {
       // Ignore storage errors
     }
 
     const isConfirmedForUser =
       Boolean(data.subscribed) && verifiedEndpoint === existing.endpoint;
+
+    if (!isConfirmedForUser) {
+      try {
+        localStorage.removeItem("scentsl_push_optin_v3");
+      } catch {
+        // Ignore storage errors
+      }
+    }
 
     return {
       supported: true,
@@ -336,8 +359,12 @@ export async function unsubscribePush(): Promise<boolean> {
       });
     }
     try {
+      localStorage.removeItem("scentsl_push_optin_v3");
       Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith("scentsl_push_verified_")) {
+        if (
+          key.startsWith("scentsl_push_verified_") ||
+          key.startsWith("scentsl_push_optin_v3_")
+        ) {
           localStorage.removeItem(key);
         }
       });

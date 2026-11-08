@@ -1,8 +1,7 @@
-const CACHE_NAME = "scentsl-cache-v2";
+const CACHE_NAME = "scentsl-cache-v3";
 const OFFLINE_URL = "/";
 
 const STATIC_ASSETS = [
-  "/",
   "/manifest.json",
   "/favicon.ico",
   "/scentsl.jpeg",
@@ -40,9 +39,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  // Skip API routes & NextAuth calls
+  // Always bypass service worker cache for API routes, Next.js build/data requests, and HTML page navigations
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith("/api/")) {
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/") ||
+    event.request.mode === "navigate"
+  ) {
     return;
   }
 

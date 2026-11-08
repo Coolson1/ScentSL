@@ -7,12 +7,12 @@ export function PwaRegister() {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       const registerSW = () => {
         navigator.serviceWorker
-          .register("/sw.js")
+          .register("/sw.js", { scope: "/", updateViaCache: "none" })
           .then((registration) => {
-            console.log("ScentSL PWA ServiceWorker registered with scope:", registration.scope);
+            registration.update().catch(() => {});
           })
           .catch((err) => {
-            console.error("ScentSL PWA ServiceWorker registration failed:", err);
+            console.warn("ScentSL PWA ServiceWorker registration notice:", err);
           });
       };
 
