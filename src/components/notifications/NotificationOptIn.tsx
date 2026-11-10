@@ -21,16 +21,17 @@ export function NotificationOptIn() {
   const verifySubscription = useCallback(async () => {
     if (typeof window === "undefined") return;
 
-    // Synchronously show modal immediately if not yet confirmed in v3
+    // Show the prompt on first visit, but respect a prior dismissal.
     try {
-      localStorage.removeItem("scentsl_push_opt_in_dismissed");
+      const dismissed =
+        localStorage.getItem("scentsl_push_opt_in_dismissed") === "true";
       const savedV3 = localStorage.getItem("scentsl_push_optin_v3");
       const hasPermission =
         "Notification" in window && Notification.permission === "granted";
 
       if (!savedV3 || !hasPermission) {
         setIsSubscribed(false);
-        setShowModal(true);
+        setShowModal(!dismissed);
       }
     } catch {
       setIsSubscribed(false);
@@ -45,7 +46,13 @@ export function NotificationOptIn() {
       setShowModal(false);
     } else {
       setIsSubscribed(false);
-      setShowModal(true);
+      try {
+        setShowModal(
+          localStorage.getItem("scentsl_push_opt_in_dismissed") !== "true"
+        );
+      } catch {
+        setShowModal(true);
+      }
     }
   }, []);
 
@@ -98,6 +105,15 @@ export function NotificationOptIn() {
       }
       setStatusMessage(res.error || "Could not enable push notifications. Please try again.");
     }
+  };
+
+  const handleDismiss = () => {
+    try {
+      localStorage.setItem("scentsl_push_opt_in_dismissed", "true");
+    } catch (error) {
+      console.error("[Push] Failed to save notification prompt dismissal:", error);
+    }
+    setShowModal(false);
   };
 
   if (isSubscribed && !isSuccess) {
@@ -158,7 +174,7 @@ export function NotificationOptIn() {
 
           <button
             type="button"
-            onClick={() => setShowModal(false)}
+            onClick={handleDismiss}
             className="rounded-full p-1 text-xs text-ink/45 transition-colors hover:text-ink"
             aria-label="Minimize notification prompt"
           >
