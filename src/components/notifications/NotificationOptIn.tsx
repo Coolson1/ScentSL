@@ -131,10 +131,6 @@ export function NotificationOptIn() {
         }}
         className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-[65] inline-flex items-center gap-2.5 rounded-full border border-brand-gold bg-ink px-4 py-2.5 text-[10px] uppercase tracking-[0.22em] text-parchment shadow-2xl transition-all hover:bg-brand-gold hover:text-ink focus-visible:outline-2 focus-visible:outline-brand-gold animate-in fade-in duration-200"
       >
-        <span className="relative flex size-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-gold opacity-75" />
-          <span className="relative inline-flex size-2 rounded-full bg-brand-gold" />
-        </span>
         Enable Push Alerts
       </button>
     );
